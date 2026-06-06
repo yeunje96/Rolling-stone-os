@@ -37,57 +37,23 @@ export default async function handler(req, res) {
       claudeKrw = d?.[0]?.value ? Number(d[0].value) : 0;
     } catch(e) {}
 
-    // 2. OpenAI Usage API — 신규 엔드포인트 (2024 이후)
+    // 2. OpenAI Billing Usage API
     let openaiUsd = 0;
     const openaiKey = process.env.OPENAI_API_KEY;
     if (openaiKey) {
       try {
-        // 이번달 1일 Unix timestamp
-        const startTs = Math.floor(new Date(year, month, 1).getTime() / 1000);
-        const endTs = Math.floor(now.getTime() / 1000);
+        const startDate = `${year}-${String(month+1).padStart(2,'0')}-01`;
+        const endDate = `${year}-${String(month+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
 
-        // 신 API: /v1/organization/usage/completions
-        const newApiRes = await fetch(
-          `https://api.openai.com/v1/organization/usage/completions?start_time=${startTs}&end_time=${endTs}&bucket_width=1d`,
-          { headers: { 'Authorization': `Bearer ${openaiKey}`, 'Content-Type': 'application/json' },
-            signal: AbortSignal.timeout(10000) }
+        const billingRes = await fetch(
+          `https://api.openai.com/v1/dashboard/billing/usage?start_date=${startDate}&end_date=${endDate}`,
+          { headers: { 'Authorization': `Bearer ${openaiKey}` }, signal: AbortSignal.timeout(10000) }
         );
 
-        if (newApiRes.ok) {
-          const data = await newApiRes.json();
-          // data.data 배열, 각 bucket에 input_tokens, output_tokens, cost 등
-          for (const bucket of (data.data || [])) {
-            for (const result of (bucket.results || [])) {
-              // cost가 있으면 직접 사용 (단위: USD)
-              if (result.cost != null) {
-                openaiUsd += result.cost;
-              } else if (result.input_tokens || result.output_tokens) {
-                // gpt-4o 기준: input $2.5/M, output $10/M
-                openaiUsd += (result.input_tokens || 0) * 0.0000025;
-                openaiUsd += (result.output_tokens || 0) * 0.00001;
-              }
-            }
-          }
-        } else {
-          // 구 API 폴백: /v1/usage?date=YYYYMMDD
-          const days = Math.min(now.getDate(), 31);
-          const dailyPromises = [];
-          for (let d = 1; d <= days; d++) {
-            const dateStr = `${year}${String(month+1).padStart(2,'0')}${String(d).padStart(2,'0')}`;
-            dailyPromises.push(
-              fetch(`https://api.openai.com/v1/usage?date=${dateStr}`,
-                { headers: { 'Authorization': `Bearer ${openaiKey}` }, signal: AbortSignal.timeout(5000) })
-              .then(r => r.ok ? r.json() : null).catch(() => null)
-            );
-          }
-          const results = await Promise.all(dailyPromises);
-          for (const day of results) {
-            if (!day) continue;
-            for (const item of (day.data || [])) {
-              // total_usage 단위: 0.001 cents
-              openaiUsd += (item.total_usage || 0) / 100000;
-            }
-          }
+        if (billingRes.ok) {
+          const data = await billingRes.json();
+          // total_usage 단위: 0.01 cents → USD 변환
+          openaiUsd = (data.total_usage || 0) / 10000;
         }
       } catch(e) {}
     }
