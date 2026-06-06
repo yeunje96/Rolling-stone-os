@@ -2533,8 +2533,7 @@ async function renderChat(){
  document.getElementById('msgHead').innerHTML=`${avatar}<span>${esc(name)} · ${esc(dept)}</span>`;
  let msgs=[];
  try{
-   if(activeChatId==='all'){
-     msgs=await sb('/messages?select=*&employee_id=eq.'+activeChatId+'&order=created_at.asc');
+   msgs=await sb('/messages?select=*&employee_id=eq.'+activeChatId+'&order=created_at.asc');
  }catch(e){}
  const body=document.getElementById('msgBody');
  body.innerHTML=msgs.length?msgs.map(m=>`<div class="bubble ${m.sender==='대표'?'sent':'recv'}">${esc(m.text||m.message||'')}<div class="t">${esc(m.sender)} · ${fmtDateTime(m.created_at).slice(5)}</div></div>`).join(''):`<div class="msg-placeholder">아직 대화가 없습니다</div>`;
