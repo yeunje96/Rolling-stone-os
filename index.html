@@ -299,7 +299,7 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
 </div>
 <div class="app">
 <aside class="sidebar">
-  <div class="brand"><div class="logo">RS</div><div><b>Rolling Stone OS</b></div></div>
+  <div class="brand"><div class="logo">RS</div><div><b>Rolling Stone OS</b><span style="font-size:10px;color:var(--sub);display:block;margin-top:1px;font-weight:400">v2.1 · 2026.06</span></div></div>
   <div class="nav-section">OVERVIEW</div>
   <button class="nav active" data-view="dashboard">홈</button>
   <button class="nav" data-view="secretary">비서</button>
@@ -367,7 +367,7 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
   <!-- 일정 센터 -->
   <div class="sec-panel active" id="sec-briefing">
     <!-- 구글 캘린더 연동 안내 -->
-    <div id="gcalSetupBanner" class="card" style="background:var(--blueL);box-shadow:none;margin-bottom:14px;display:none">
+    <div id="gcalSetupBanner" class="card" style="background:var(--blueL);box-shadow:none;margin-bottom:14px;display:block">
       <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
         <div>
           <b style="font-size:13px">📅 구글 캘린더 연동</b>
@@ -1621,10 +1621,10 @@ Canva가 포스터 후보를 생성합니다.
         <h2>계정 설정</h2>
         <label style="font-size:12px;color:var(--sub)">Threads User ID</label>
         <input id="threadsUserId" placeholder="예: 123456789" style="margin-bottom:10px"
-          value="${localStorage.getItem('rs_threads_uid')||''}" oninput="localStorage.setItem('rs_threads_uid',this.value)">
+          oninput="saveThreadsCreds()">
         <label style="font-size:12px;color:var(--sub)">Access Token</label>
         <input id="threadsToken" type="password" placeholder="THR..." style="margin-bottom:14px"
-          value="${localStorage.getItem('rs_threads_token')||''}" oninput="localStorage.setItem('rs_threads_token',this.value)">
+          oninput="saveThreadsCreds()">
         <button class="btn sm" onclick="testThreadsToken()">연결 테스트</button>
         <div id="threadsTokenStatus" class="small muted" style="margin-top:6px"></div>
       </div>
@@ -2522,39 +2522,22 @@ let activeChatId=null;
 async function loadMessenger(){
  const list=document.getElementById('msgList');
  let msgs=[];try{msgs=await sb('/messages?select=*&order=created_at.asc')}catch(e){}
- const allMsgs=msgs.filter(m=>!m.employee_id||m.employee_id===null);
- const allLast=allMsgs.slice(-1)[0];
- const allCard=`<div class="msg-contact ${activeChatId==='all'?'on':''}" onclick="openChat('all')"><div class="avatar ini" style="background:#191f28">전</div><div style="overflow:hidden"><b>전사 <span class="small muted" style="font-weight:600">· 전 직원</span></b><span>${allLast?esc((allLast.text||allLast.message||'').slice(0,16)):'공지 채널'}</span></div></div>`;
  const empCards=employees.map(e=>{const last=msgs.filter(m=>m.employee_id===e.id).slice(-1)[0];return `<div class="msg-contact ${activeChatId===e.id?'on':''}" onclick="openChat('${e.id}')">${avatarHTML(e)}<div style="overflow:hidden"><b>${esc(e.name)}</b><span>${last?esc((last.text||last.message||'').slice(0,16)):'대화 없음'}</span></div></div>`}).join('');
- list.innerHTML=allCard+empCards;
+ list.innerHTML=empCards;
  if(activeChatId)await renderChat();
 }
 async function openChat(id){activeChatId=id;await loadMessenger();await renderChat();document.getElementById('msgInput').disabled=false;}
 async function renderChat(){
  let name,dept,avatar;
- if(activeChatId==='all'){name='전사';dept='전 직원';avatar='<div class="avatar ini" style="background:#191f28">전</div>';}
- else{const e=employees.find(x=>x.id===activeChatId);if(!e)return;name=e.name;dept=[e.department,e.position].filter(Boolean).join(' · ')||'';avatar=avatarHTML(e);}
+ const e=employees.find(x=>x.id===activeChatId);if(!e)return;name=e.name;dept=[e.department,e.position].filter(Boolean).join(' · ')||'';avatar=avatarHTML(e);
  document.getElementById('msgHead').innerHTML=`${avatar}<span>${esc(name)} · ${esc(dept)}</span>`;
  let msgs=[];
  try{
    if(activeChatId==='all'){
-     msgs=await sb('/messages?select=*&employee_id=is.null&order=created_at.asc');
-   }else{
      msgs=await sb('/messages?select=*&employee_id=eq.'+activeChatId+'&order=created_at.asc');
-   }
  }catch(e){}
  const body=document.getElementById('msgBody');
- body.innerHTML=msgs.length?msgs.map(m=>`<div class="bubble ${m.sender==='대표'?'sent':'recv'}">${esc(m.text||m.message||'')}<div class="t">${esc(m.sender)} · ${fmtDateTime(m.created_at).slice(5)}</div></div>`).join(''):`<div class="msg-placeholder">${activeChatId==='all'?'전 직원에게 보낼 공지를 입력하세요':'아직 대화가 없습니다'}</div>`;
- if(activeChatId==='all'){
-   const notice=document.getElementById('allChannelNotice');
-   if(!notice){
-     const n=document.createElement('div');
-     n.id='allChannelNotice';
-     n.style.cssText='font-size:11px;color:var(--sub);text-align:center;padding:6px 0;border-bottom:1px solid var(--border);margin-bottom:8px';
-     n.textContent='📢 전사 공지 채널 — AI 답장 없음 (개인 직원 탭에서 1:1 대화)';
-     body.prepend(n);
-   }
- }
+ body.innerHTML=msgs.length?msgs.map(m=>`<div class="bubble ${m.sender==='대표'?'sent':'recv'}">${esc(m.text||m.message||'')}<div class="t">${esc(m.sender)} · ${fmtDateTime(m.created_at).slice(5)}</div></div>`).join(''):`<div class="msg-placeholder">아직 대화가 없습니다</div>`;
  body.scrollTop=body.scrollHeight;
 }
 async function sendMessage(){
@@ -2564,18 +2547,14 @@ async function sendMessage(){
  if(!txt)return;
  inp.value='';
  inp.disabled=true; // 중복 전송 방지
- const emp=activeChatId==='all'?null:(employees.find(x=>x.id===activeChatId)||null);
- const empName=activeChatId==='all'?'전사':(emp?emp.name:'직원');
+ const emp=employees.find(x=>x.id===activeChatId)||null;
+ const empName=emp?emp.name:'직원';
  try{
-  const msgPayload=activeChatId==='all'
-    ?{employee_id:null,employee_name:'전사',sender:'대표',text:txt,message:txt}
-    :{employee_id:activeChatId,employee_name:empName,sender:'대표',text:txt,message:txt};
+  const msgPayload={employee_id:activeChatId,employee_name:empName,sender:'대표',text:txt,message:txt};
   await sb('/messages',{method:'POST',body:JSON.stringify([msgPayload])});
   await renderChat();
-  if(activeChatId!=='all'&&emp){
+  if(emp){
     await callAgent(emp,txt);
-  } else {
-    await loadMessenger();
   }
  }catch(err){alert('전송 실패: '+err.message);}
  finally{inp.disabled=false;inp.focus();}
@@ -2693,6 +2672,7 @@ async function openReportsModal(){
 const PR_STATUS=["진행중","검토중","완료","보류","종료"];
 let prSelectedDepts=[];
 async function loadProjects(){
+ const parseToken=v=>{const n=parseInt(String(v||'0').replace(/[^0-9]/g,''))||0;return n;};
  let rows=[];try{rows=await sb('/projects?select=*&order=created_at.desc')}catch(e){}
  document.getElementById('projectBody').innerHTML=rows.length?rows.map(p=>{
    // 기록 드롭다운
@@ -2704,7 +2684,6 @@ async function loadProjects(){
    const curColor=(projStatuses.find(s=>s.val===p.status)||{}).color||'b-gray';
    return `<tr class="row-click" ondblclick='openProjectModalById("${p.id}")'><td><b>${esc(p.name)}</b>${p.description?`<div class="small muted" style="margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" title="${esc(p.description)}">${esc(p.description.slice(0,30)+(p.description.length>30?'…':''))}</div>`:''}</td><td>${deptTags(p.departments)}</td><td onclick="event.stopPropagation()" style="min-width:120px"><select class="status-select ${curColor}" onchange="changeProjectStatus('${p.id}',this.value)" style="appearance:none;-webkit-appearance:none;border:none;outline:none;cursor:pointer;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;min-width:80px;text-align:center">${projStatuses.map(s=>`<option value="${esc(s.val)}" ${p.status===s.val?'selected':''}>${esc(s.val)}</option>`).join('')}</select></td><td class="small" style="font-weight:600">${parseToken(p.token_usage||'0')>0?parseToken(p.token_usage||'0').toLocaleString()+' T':'—'}</td><td>${logHtml}</td><td onclick="event.stopPropagation()"><button class="btn red sm" onclick="deleteProjectById('${p.id}','${esc(p.name)}')">삭제</button></td></tr>`;
  }).join(''):empty(5,'등록된 프로젝트가 없습니다');
- const parseToken=v=>{const n=parseInt(String(v||'0').replace(/[^0-9]/g,''))||0;return n;};
  const sortedByToken=[...rows].sort((a,b)=>parseToken(b.token_usage)-parseToken(a.token_usage));
  const visible=sortedByToken.filter(p=>parseToken(p.token_usage)>0||rows.length<=6);
  const display=visible.length?visible:sortedByToken;
@@ -3494,6 +3473,28 @@ async function editRevenue(month){
 }
 
 /* ============ Threads API 발행 ============ */
+/* ---- Threads 크레덴셜 저장/로드 (Supabase _system) ---- */
+async function saveThreadsCreds(){
+  const uid=document.getElementById('threadsUserId').value.trim();
+  const token=document.getElementById('threadsToken').value.trim();
+  try{
+    await sb('/sops?department=eq._system&title=eq.threads_creds',{method:'DELETE'});
+    await sb('/sops',{method:'POST',body:JSON.stringify([{title:'threads_creds',department:'_system',content:JSON.stringify({uid,token})}])});
+  }catch(e){}
+}
+async function loadThreadsCreds(){
+  try{
+    const rows=await sb('/sops?select=content&department=eq._system&title=eq.threads_creds');
+    if(rows&&rows[0]){
+      const d=JSON.parse(rows[0].content||'{}');
+      const uidEl=document.getElementById('threadsUserId');
+      const tokenEl=document.getElementById('threadsToken');
+      if(uidEl&&d.uid)uidEl.value=d.uid;
+      if(tokenEl&&d.token)tokenEl.value=d.token;
+    }
+  }catch(e){}
+}
+
 async function testThreadsToken(){
   const uid=document.getElementById('threadsUserId').value.trim();
   const token=document.getElementById('threadsToken').value.trim();
@@ -4889,6 +4890,8 @@ function threadsTab(btn,id){
   document.querySelectorAll('#threads-tool .sec-panel').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById(id).classList.add('active');
+  if(id==='threads-api'){loadThreadsCreds();renderThreadsHistory();}
+  if(id==='threads-queue'){renderThreadQueue();}
 }
 let currentThreadContent=null;
 async function generateCoupangThread(){
