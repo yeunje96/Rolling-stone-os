@@ -731,15 +731,15 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
 
   <!-- 탭 -->
   <div style="display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--border)">
-    <button class="sec-tab active" onclick="finTab(this,'fin-freelance')">💼 프리랜서 단가</button>
+    <button class="sec-tab active" onclick="finTab(this,'fin-ledger')">📒 사업 장부</button>
+    <button class="sec-tab" onclick="finTab(this,'fin-freelance')">💼 프리랜서 단가</button>
     <button class="sec-tab" onclick="finTab(this,'fin-design')">🎨 디자인 견적</button>
     <button class="sec-tab" onclick="finTab(this,'fin-biz')">📈 사업 계산기</button>
-    <button class="sec-tab" onclick="finTab(this,'fin-ledger')">📒 사업 장부</button>
     <button class="sec-tab" onclick="finTab(this,'fin-clobe')">🔗 Clobe AI</button>
   </div>
 
   <!-- 프리랜서 단가 -->
-  <div id="fin-freelance" class="sec-panel active">
+  <div id="fin-freelance" class="sec-panel">
     <div class="grid2">
       <div class="card">
         <h2>연봉 → 적정 단가 계산</h2>
@@ -882,7 +882,7 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
   </div>
 
   <!-- 사업 장부 -->
-  <div id="fin-ledger" class="sec-panel">
+  <div id="fin-ledger" class="sec-panel active">
     <div class="grid2" style="align-items:start;gap:14px;margin-bottom:16px">
       <div class="card" style="background:var(--blueL);box-shadow:none">
         <div class="small muted" style="margin-bottom:4px">연간 사업 수입</div>
@@ -996,19 +996,19 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
   <!-- 요약 카드 -->
   <div class="grid3" style="margin-bottom:16px">
     <div class="card" style="background:var(--blueL);box-shadow:none">
-      <div class="small muted">이번달 총 비용</div>
+      <div class="small muted">전체 누적 비용 (OpenAI)</div>
       <b id="apiTotalKrw" style="font-size:22px;color:var(--blue)">₩—</b>
       <div class="small muted" id="apiTotalUsd">$—</div>
     </div>
     <div class="card" style="background:var(--greenL);box-shadow:none">
-      <div class="small muted">OpenAI 비용</div>
-      <b id="apiOpenaiKrw" style="font-size:22px;color:var(--green)">₩—</b>
-      <div class="small muted" id="apiOpenaiUsd">$—</div>
+      <div class="small muted">전체 누적 토큰</div>
+      <b id="apiTotalTokens" style="font-size:22px;color:var(--green)">—</b>
+      <div class="small muted">tokens</div>
     </div>
     <div class="card" style="background:var(--yellowL);box-shadow:none">
-      <div class="small muted">환율</div>
+      <div class="small muted">환율 (USD/KRW)</div>
       <b id="apiRate" style="font-size:22px;color:#b45309">₩—</b>
-      <div class="small muted">현재 USD/KRW</div>
+      <div class="small muted" id="apiOpenaiUsd" style="display:none">$—</div>
     </div>
   </div>
 
@@ -1025,39 +1025,78 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
     <div class="card">
       <h2 style="margin-bottom:12px">프로젝트별 토큰 사용량</h2>
       <table style="table-layout:fixed">
-        <colgroup><col style="width:45%"><col style="width:20%"><col style="width:20%"><col style="width:15%"></colgroup>
-        <thead><tr><th>프로젝트</th><th>토큰</th><th>예상 비용</th><th>비율</th></tr></thead>
-        <tbody id="apiProjectBody"><tr><td colspan="4" class="empty">데이터 없음</td></tr></tbody>
+        <colgroup><col style="width:50%"><col style="width:25%"><col style="width:25%"></colgroup>
+        <thead><tr><th>프로젝트</th><th>토큰 (T)</th><th>예상 비용</th></tr></thead>
+        <tbody id="apiProjectBody"><tr><td colspan="3" class="empty">데이터 없음</td></tr></tbody>
       </table>
     </div>
     <div class="card" style="margin-top:14px">
-      <h2 style="margin-bottom:12px">직원별 사용량</h2>
-      <div id="apiEmployeeChart" style="display:flex;flex-direction:column;gap:8px"></div>
+      <h2 style="margin-bottom:12px">직원별 완료 업무 수</h2>
+      <table style="table-layout:fixed">
+        <colgroup><col style="width:50%"><col style="width:50%"></colgroup>
+        <thead><tr><th>직원</th><th>완료 업무</th></tr></thead>
+        <tbody id="apiEmployeeBody"><tr><td colspan="2" class="empty">데이터 없음</td></tr></tbody>
+      </table>
     </div>
   </div>
 
   <!-- 일별 탭 -->
   <div class="sec-panel" id="api-day">
     <div class="card">
-      <h2 style="margin-bottom:12px">최근 30일 일별 사용량</h2>
-      <canvas id="apiDayChart" height="160"></canvas>
+      <h2 style="margin-bottom:12px">프로젝트별 토큰 (일별 누적)</h2>
+      <table style="table-layout:fixed">
+        <colgroup><col style="width:50%"><col style="width:25%"><col style="width:25%"></colgroup>
+        <thead><tr><th>프로젝트</th><th>토큰 (T)</th><th>예상 비용</th></tr></thead>
+        <tbody id="apiDayProjectBody"><tr><td colspan="3" class="empty">데이터 없음</td></tr></tbody>
+      </table>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h2 style="margin-bottom:12px">직원별 오늘 업무</h2>
+      <table style="table-layout:fixed">
+        <colgroup><col style="width:50%"><col style="width:50%"></colgroup>
+        <thead><tr><th>직원</th><th>오늘 등록 업무</th></tr></thead>
+        <tbody id="apiDayEmpBody"><tr><td colspan="2" class="empty">데이터 없음</td></tr></tbody>
+      </table>
     </div>
   </div>
 
   <!-- 주별 탭 -->
   <div class="sec-panel" id="api-week">
     <div class="card">
-      <h2 style="margin-bottom:12px">최근 12주 주별 사용량</h2>
-      <canvas id="apiWeekChart" height="160"></canvas>
+      <h2 style="margin-bottom:12px">프로젝트별 토큰 (이번주)</h2>
+      <table style="table-layout:fixed">
+        <colgroup><col style="width:50%"><col style="width:25%"><col style="width:25%"></colgroup>
+        <thead><tr><th>프로젝트</th><th>토큰 (T)</th><th>예상 비용</th></tr></thead>
+        <tbody id="apiWeekProjectBody"><tr><td colspan="3" class="empty">데이터 없음</td></tr></tbody>
+      </table>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h2 style="margin-bottom:12px">직원별 이번주 업무</h2>
+      <table style="table-layout:fixed">
+        <colgroup><col style="width:50%"><col style="width:50%"></colgroup>
+        <thead><tr><th>직원</th><th>이번주 등록 업무</th></tr></thead>
+        <tbody id="apiWeekEmpBody"><tr><td colspan="2" class="empty">데이터 없음</td></tr></tbody>
+      </table>
     </div>
   </div>
 
   <!-- 월별 탭 -->
   <div class="sec-panel" id="api-month">
     <div class="card">
-      <h2 style="margin-bottom:12px">월별 비용 추이</h2>
-      <canvas id="apiMonthChart" height="160"></canvas>
-      <div id="apiMonthTable" style="margin-top:14px"></div>
+      <h2 style="margin-bottom:12px">프로젝트별 토큰 (이번달)</h2>
+      <table style="table-layout:fixed">
+        <colgroup><col style="width:50%"><col style="width:25%"><col style="width:25%"></colgroup>
+        <thead><tr><th>프로젝트</th><th>토큰 (T)</th><th>예상 비용</th></tr></thead>
+        <tbody id="apiMonthProjectBody"><tr><td colspan="3" class="empty">데이터 없음</td></tr></tbody>
+      </table>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h2 style="margin-bottom:12px">직원별 이번달 업무</h2>
+      <table style="table-layout:fixed">
+        <colgroup><col style="width:50%"><col style="width:50%"></colgroup>
+        <thead><tr><th>직원</th><th>이번달 등록 업무</th></tr></thead>
+        <tbody id="apiMonthEmpBody"><tr><td colspan="2" class="empty">데이터 없음</td></tr></tbody>
+      </table>
     </div>
   </div>
 </section>
@@ -2821,9 +2860,35 @@ async function openSopModalById(id){let rows=[];try{rows=await sb('/sops?select=
 async function deleteSop(id){if(!confirm('이 절차를 삭제할까요?'))return;try{await sb('/sops?id=eq.'+id,{method:'DELETE'});await loadSops();await log('표준작업절차','절차 삭제')}catch(e){alert(e.message)}}
 
 /* ============ 대표관리: weekly / calendar / year checklist ============ */
+let weeklyDragId=null;
 async function loadWeeklyTodos(){
- let rows=[];try{rows=await sb('/weekly_todos?select=*&order=created_at.asc')}catch(e){}
- document.getElementById('weeklyTodoBody').innerHTML=rows.length?rows.map(t=>`<div class="check-item ${t.is_done?'done':''}"><input type="checkbox" ${t.is_done?'checked':''} onchange="toggleWeekly('${t.id}',this.checked)"><div class="check-text">${esc(t.title)}</div><div class="check-actions"><button class="btn sm" style="background:transparent;color:#aaa;padding:4px 6px" onclick="deleteWeekly('${t.id}')" title="삭제"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3.5h10M5.5 3.5V2.5h3v1M3.5 3.5l.5 8h6l.5-8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>`).join(''):'<div class="empty">등록된 할일이 없습니다</div>';
+ let rows=[];try{rows=await sb('/weekly_todos?select=*&order=sort_order.asc,created_at.asc')}catch(e){}
+ const body=document.getElementById('weeklyTodoBody');
+ if(!rows.length){body.innerHTML='<div class="empty">등록된 할일이 없습니다</div>';return;}
+ body.innerHTML=rows.map(t=>`<div class="check-item ${t.is_done?'done':''}" draggable="true" data-id="${t.id}"
+   ondragstart="weeklyDragId=this.dataset.id;this.style.opacity='.4'"
+   ondragend="this.style.opacity='1'"
+   ondragover="event.preventDefault();this.style.borderColor='var(--blue)'"
+   ondragleave="this.style.borderColor=''"
+   ondrop="weeklyDrop(event,this.dataset.id)">
+   <input type="checkbox" ${t.is_done?'checked':''} onchange="toggleWeekly('${t.id}',this.checked)">
+   <div class="check-text">${esc(t.title)}</div>
+   <div class="check-actions">
+     <span style="cursor:grab;color:#ccc;padding:0 4px;font-size:16px">⠿</span>
+     <button class="btn sm" style="background:transparent;color:#aaa;padding:4px 6px" onclick="deleteWeekly('${t.id}')" title="삭제"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3.5h10M5.5 3.5V2.5h3v1M3.5 3.5l.5 8h6l.5-8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+   </div>
+ </div>`).join('');
+}
+async function weeklyDrop(event,targetId){
+ event.preventDefault();
+ document.querySelectorAll('#weeklyTodoBody .check-item').forEach(el=>el.style.borderColor='');
+ if(!weeklyDragId||weeklyDragId===targetId)return;
+ const items=[...document.querySelectorAll('#weeklyTodoBody .check-item')].map(el=>el.dataset.id);
+ const fromIdx=items.indexOf(weeklyDragId);
+ const toIdx=items.indexOf(targetId);
+ items.splice(fromIdx,1);items.splice(toIdx,0,weeklyDragId);
+ try{await Promise.all(items.map((id,i)=>sb('/weekly_todos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({sort_order:i})})));}catch(e){}
+ await loadWeeklyTodos();
 }
 async function saveWeeklyTodo(){const i=document.getElementById('weeklyTodoTitle');if(!i.value.trim())return alert('할일을 입력하세요');try{await sb('/weekly_todos',{method:'POST',body:JSON.stringify([{title:i.value,is_done:false}])});i.value='';closeModal('weeklyTodoModal');await loadWeeklyTodos();await log('대표관리','이번주 할일 추가')}catch(e){alert(e.message)}}
 async function toggleWeekly(id,v){try{await sb('/weekly_todos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({is_done:v})});await loadWeeklyTodos()}catch(e){}}
@@ -2913,6 +2978,7 @@ async function loadYearChecklist(){
     if(!byMonth[m])byMonth[m]=[];
     byMonth[m].push(r);
   });
+  _ckDragItems=byMonth;
 
   const curMonth=new Date().getMonth()+1;
   // 이미지처럼: 데이터 있는 월 + 현재 월만 표시 (오름차순)
@@ -3002,9 +3068,17 @@ function ckDragLeave(e){e.currentTarget.classList.remove('ck-dov');}
 function ckDragEnd(e){e.currentTarget.classList.remove('ck-ghost');document.querySelectorAll('.ck-item').forEach(el=>el.classList.remove('ck-dov'));}
 function ckDrop(e,m,i){
   e.preventDefault();e.currentTarget.classList.remove('ck-dov');
-  if(_ckDragMonth!==m||_ckDragIdx===null||_ckDragIdx===i)return;
-  // UI 순서 변경만 (DB 재정렬 없음 — 필요 시 order 컬럼 추가 가능)
-  _ckDragIdx=null;
+  if(_ckDragMonth!==m||_ckDragIdx===null||_ckDragIdx===i){_ckDragIdx=null;return;}
+  const fromIdx=_ckDragIdx;_ckDragIdx=null;
+  // _ckDragItems에서 해당 월 아이템 순서 변경 후 DB 저장
+  const monthItems=_ckDragItems&&_ckDragItems[m];
+  if(!monthItems)return;
+  const moved=monthItems.splice(fromIdx,1)[0];
+  monthItems.splice(i,0,moved);
+  // sort_order 업데이트
+  Promise.all(monthItems.map((item,idx)=>
+    sb('/sops?id=eq.'+item.id,{method:'PATCH',body:JSON.stringify({sort_order:idx})})
+  )).catch(()=>{}).then(()=>loadCkYear());
 }
 
 let gcalState=new Date();
@@ -3965,73 +4039,79 @@ function apiTab(btn,id){
 }
 
 async function loadApiManager(){
-  // 1. 비용 요약 (report API)
-  try{
-    const d=await fetch('/api/report?type=usage').then(r=>r.json());
-    document.getElementById('apiTotalKrw').textContent='₩'+(d.total_krw||0).toLocaleString();
-    document.getElementById('apiTotalUsd').textContent='$'+(d.total_usd||0).toFixed(2);
-    document.getElementById('apiOpenaiKrw').textContent='₩'+(d.openai_krw||0).toLocaleString();
-    document.getElementById('apiOpenaiUsd').textContent='$'+(d.openai_usd||0).toFixed(2);
-    document.getElementById('apiRate').textContent='₩'+(d.rate||1380).toLocaleString();
-    // secApi도 업데이트
-    const secApi=document.getElementById('secApi');
-    if(secApi)secApi.textContent='$'+(d.total_usd||0).toFixed(2)+' / ₩'+(d.total_krw||0).toLocaleString();
-    // homeApi도 업데이트
-    const homeApi=document.getElementById('homeApi');
-    if(homeApi)homeApi.innerHTML=`<span style="font-size:15px">$${(d.total_usd||0).toFixed(2)}</span><br><span style="font-size:11px;color:var(--sub)">₩${(d.total_krw||0).toLocaleString()}</span>`;
-  }catch(e){}
+  const parseT=v=>parseInt(String(v||'0').replace(/[^0-9]/g,''))||0;
+  const USD_KRW=1380;
+  const tokenToKrw=t=>Math.round(t*0.00001*USD_KRW);
 
-  // 2. 프로젝트별 토큰 사용량 (Supabase)
-  try{
-    const projects=await sb('/projects?select=name,token_usage&order=token_usage.desc&limit=20');
-    const total=projects.reduce((s,p)=>s+(parseInt(String(p.token_usage||'0').replace(/[^0-9]/g,''))||0),0);
-    const tbody=document.getElementById('apiProjectBody');
-    if(tbody)tbody.innerHTML=projects.filter(p=>(parseInt(String(p.token_usage||'0').replace(/[^0-9]/g,''))||0)>0).map(p=>{
-      const t=parseInt(String(p.token_usage||'0').replace(/[^0-9]/g,''))||0;
-      const pct=total?Math.round(t/total*100):0;
-      const cost=Math.round(t*0.00001*1380);
-      return `<tr><td class="small" style="font-weight:600">${esc(p.name)}</td><td class="small">${t.toLocaleString()}</td><td class="small">₩${cost.toLocaleString()}</td><td><div style="background:var(--border);border-radius:99px;height:6px"><div style="background:var(--blue);width:${pct}%;height:6px;border-radius:99px"></div></div><span class="small muted">${pct}%</span></td></tr>`;
-    }).join('')||'<tr><td colspan="4" class="empty">토큰 사용 기록 없음</td></tr>';
-  }catch(e){}
+  // 1. 전체 누적 토큰 + 비용 (Supabase projects)
+  let projects=[];
+  try{projects=await sb('/projects?select=name,token_usage&order=token_usage.desc&limit=50');}catch(e){}
+  const totalTokens=projects.reduce((s,p)=>s+parseT(p.token_usage),0);
+  const totalKrw=tokenToKrw(totalTokens);
+  const totalUsd=(totalTokens*0.00001).toFixed(2);
+  document.getElementById('apiTotalKrw').textContent='₩'+totalKrw.toLocaleString();
+  document.getElementById('apiTotalUsd').textContent='$'+totalUsd;
+  document.getElementById('apiTotalTokens').textContent=totalTokens.toLocaleString();
+  document.getElementById('apiRate').textContent='₩'+USD_KRW.toLocaleString();
+  const secApi=document.getElementById('secApi');
+  if(secApi)secApi.textContent='₩'+totalKrw.toLocaleString()+' ($'+totalUsd+')';
+  const homeApi=document.getElementById('homeApi');
+  if(homeApi)homeApi.innerHTML=`<span style="font-size:15px">₩${totalKrw.toLocaleString()}</span><br><span style="font-size:11px;color:var(--sub)">$${totalUsd}</span>`;
 
-  // 3. 직원별 사용량
+  // 프로젝트 행 생성 헬퍼
+  const projRows=(list,tbodyId,cols)=>{
+    const tbody=document.getElementById(tbodyId);
+    if(!tbody)return;
+    const filtered=list.filter(p=>parseT(p.token_usage)>0);
+    tbody.innerHTML=filtered.length?filtered.map(p=>{
+      const t=parseT(p.token_usage);
+      const cost=tokenToKrw(t);
+      return `<tr><td class="small" style="font-weight:600">${esc(p.name)}</td><td class="small">${t.toLocaleString()} T</td><td class="small">₩${cost.toLocaleString()}</td></tr>`;
+    }).join(''):`<tr><td colspan="${cols}" class="empty">토큰 사용 기록 없음</td></tr>`;
+  };
+
+  // 2. 전체 탭 - 프로젝트별
+  projRows(projects,'apiProjectBody',3);
+
+  // 3. 전체 탭 - 직원별 완료 업무
   try{
-    const employees=await sb('/employees?select=name,department&limit=15');
-    const tasks=await sb('/tasks?select=assigned_employee_name&status=eq.완료&limit=200');
+    const tasks=await sb('/tasks?select=assigned_employee_name,created_at&status=eq.완료&limit=500');
     const empCount={};
     tasks.forEach(t=>{if(t.assigned_employee_name)empCount[t.assigned_employee_name]=(empCount[t.assigned_employee_name]||0)+1;});
-    const maxCount=Math.max(...Object.values(empCount),1);
-    const box=document.getElementById('apiEmployeeChart');
-    if(box)box.innerHTML=Object.entries(empCount).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([name,cnt])=>
-      `<div class="row" style="gap:8px;align-items:center"><span class="small" style="width:80px;flex-shrink:0">${esc(name)}</span><div style="flex:1;background:var(--border);border-radius:99px;height:8px"><div style="background:var(--green);width:${Math.round(cnt/maxCount*100)}%;height:8px;border-radius:99px"></div></div><span class="small muted">${cnt}건</span></div>`
-    ).join('')||'<div class="empty">데이터 없음</div>';
+    const empBody=document.getElementById('apiEmployeeBody');
+    if(empBody){
+      const sorted=Object.entries(empCount).sort((a,b)=>b[1]-a[1]);
+      empBody.innerHTML=sorted.length?sorted.map(([name,cnt])=>
+        `<tr><td class="small" style="font-weight:600">${esc(name)}</td><td class="small">${cnt}건</td></tr>`
+      ).join(''):'<tr><td colspan="2" class="empty">데이터 없음</td></tr>';
+    }
+
+    // 4. 일별 탭
+    const today=new Date().toISOString().slice(0,10);
+    const dayTasks=tasks.filter(t=>t.created_at&&t.created_at.slice(0,10)===today);
+    const dayEmp={};dayTasks.forEach(t=>{if(t.assigned_employee_name)dayEmp[t.assigned_employee_name]=(dayEmp[t.assigned_employee_name]||0)+1;});
+    const dayEmpBody=document.getElementById('apiDayEmpBody');
+    if(dayEmpBody){const s=Object.entries(dayEmp).sort((a,b)=>b[1]-a[1]);dayEmpBody.innerHTML=s.length?s.map(([n,c])=>`<tr><td class="small" style="font-weight:600">${esc(n)}</td><td class="small">${c}건</td></tr>`).join(''):'<tr><td colspan="2" class="empty">오늘 데이터 없음</td></tr>';}
+
+    // 5. 주별 탭
+    const mon=new Date();mon.setDate(mon.getDate()-mon.getDay()+1);const monStr=mon.toISOString().slice(0,10);
+    const weekTasks=tasks.filter(t=>t.created_at&&t.created_at.slice(0,10)>=monStr);
+    const weekEmp={};weekTasks.forEach(t=>{if(t.assigned_employee_name)weekEmp[t.assigned_employee_name]=(weekEmp[t.assigned_employee_name]||0)+1;});
+    const weekEmpBody=document.getElementById('apiWeekEmpBody');
+    if(weekEmpBody){const s=Object.entries(weekEmp).sort((a,b)=>b[1]-a[1]);weekEmpBody.innerHTML=s.length?s.map(([n,c])=>`<tr><td class="small" style="font-weight:600">${esc(n)}</td><td class="small">${c}건</td></tr>`).join(''):'<tr><td colspan="2" class="empty">이번주 데이터 없음</td></tr>';}
+
+    // 6. 월별 탭
+    const thisMonth=new Date().toISOString().slice(0,7);
+    const monthTasks=tasks.filter(t=>t.created_at&&t.created_at.slice(0,7)===thisMonth);
+    const monthEmp={};monthTasks.forEach(t=>{if(t.assigned_employee_name)monthEmp[t.assigned_employee_name]=(monthEmp[t.assigned_employee_name]||0)+1;});
+    const monthEmpBody=document.getElementById('apiMonthEmpBody');
+    if(monthEmpBody){const s=Object.entries(monthEmp).sort((a,b)=>b[1]-a[1]);monthEmpBody.innerHTML=s.length?s.map(([n,c])=>`<tr><td class="small" style="font-weight:600">${esc(n)}</td><td class="small">${c}건</td></tr>`).join(''):'<tr><td colspan="2" class="empty">이번달 데이터 없음</td></tr>';}
   }catch(e){}
 
-  // 4. 월별 차트
-  try{
-    const months=Array.from({length:6},(_,i)=>{const d=new Date();d.setMonth(d.getMonth()-5+i);return {key:`api_cost_${d.getFullYear()}_${String(d.getMonth()+1).padStart(2,'0')}`,label:`${d.getMonth()+1}월`};});
-    const rows=await sb(`/settings?id=in.(${months.map(m=>`"${m.key}"`).join(',')})`);
-    const vals=months.map(m=>{const r=rows.find(x=>x.id===m.key);return {label:m.label,val:r?Number(r.value||0):0};});
-    const canvas=document.getElementById('apiMonthChart');
-    if(canvas){
-      canvas.width=canvas.offsetWidth||600;
-      const ctx=canvas.getContext('2d');
-      const W=canvas.width,H=canvas.height||160;
-      ctx.clearRect(0,0,W,H);
-      const maxVal=Math.max(...vals.map(v=>v.val),1);
-      const bw=Math.floor(W/vals.length*0.5);
-      const gap=W/vals.length;
-      vals.forEach((v,i)=>{
-        const x=i*gap+gap*0.25;
-        const bh=Math.floor(v.val/maxVal*(H-30));
-        ctx.fillStyle='#3b82f6';
-        ctx.fillRect(x,H-bh-20,bw,bh);
-        ctx.fillStyle='#666';ctx.font='10px sans-serif';
-        ctx.fillText(v.label,x,H-4);
-        if(v.val>0){ctx.fillStyle='#333';ctx.fillText('₩'+(v.val/1000).toFixed(0)+'K',x,H-bh-24);}
-      });
-    }
-  }catch(e){}
+  // 일별/주별/월별 프로젝트 탭 — 전체 누적 동일 데이터 사용
+  projRows(projects,'apiDayProjectBody',3);
+  projRows(projects,'apiWeekProjectBody',3);
+  projRows(projects,'apiMonthProjectBody',3);
 }
 
 /* ============ 시스템 관리 ============ */
