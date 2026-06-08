@@ -1924,7 +1924,7 @@ function applyLoginState(){
       loadProjects();
       loadRevenue();
       loadWeeklyTodos();
-      loadCkYear();
+      loadCkYear().then(()=>loadYearChecklist());
       loadCalendar();
       loadSchedule();
       loadApiCost();
@@ -2963,15 +2963,35 @@ async function loadSecSchedule(range,btn){
   document.querySelectorAll('[id^="schedBtn-"]').forEach(b=>b.classList.remove('active','primary'));
   if(btn)btn.classList.add('active');
   const today=new Date();
+  const todayStr=today.toISOString().slice(0,10);
   let evs=[];
   try{
-    if(range==='today'){evs=await sb('/gcal_events?select=*&date=eq.'+today.toISOString().slice(0,10)+'&order=time.asc');}
-    else{const offset=range==='next'?7:0;const mon=new Date(today);mon.setDate(today.getDate()-today.getDay()+1+offset);const sun=new Date(mon);sun.setDate(mon.getDate()+6);const from=mon.toISOString().slice(0,10),to=sun.toISOString().slice(0,10);evs=await sb(`/gcal_events?select=*&date=gte.${from}&date=lte.${to}&order=date.asc,time.asc`);}
+    const res=await fetch('/api/gcal-events?days=90');
+    const data=await res.json();
+    if(data.events&&!data.error){
+      if(range==='today'){
+        evs=data.events.filter(e=>e.date===todayStr);
+      } else if(range==='next'){
+        const mon=new Date(today);mon.setDate(today.getDate()-today.getDay()+8);
+        const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+        const from=mon.toISOString().slice(0,10),to=sun.toISOString().slice(0,10);
+        evs=data.events.filter(e=>e.date>=from&&e.date<=to);
+      } else {
+        const mon=new Date(today);mon.setDate(today.getDate()-today.getDay()+1);
+        const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+        const from=mon.toISOString().slice(0,10),to=sun.toISOString().slice(0,10);
+        evs=data.events.filter(e=>e.date>=from&&e.date<=to);
+      }
+    }
   }catch(e){}
-  const body=document.getElementById('scheduleBody');
-  if(!evs.length){body.innerHTML='<div class="empty">일정이 없습니다</div>';return;}
-  if(range==='today'){body.innerHTML=evs.map(e=>`<div class="sched-line ${e.is_done?'done':''}"><input type="checkbox" ${e.is_done?'checked':''} onchange="toggleSchedule('${e.id}',this.checked)"><span class="s-time">${esc(e.time||'—')}</span><span class="s-title">${esc(e.title)}</span><span class="s-place">${esc(e.place||'')}</span></div>`).join('');}
-  else{const byDate={};evs.forEach(e=>{(byDate[e.date]=byDate[e.date]||[]).push(e)});body.innerHTML=Object.entries(byDate).map(([d,list])=>`<div style="margin-bottom:12px"><div class="small" style="font-weight:800;color:var(--blue);margin-bottom:6px">${d}</div>${list.map(e=>`<div class="sched-line"><span class="s-time">${esc(e.time||'—')}</span><span class="s-title">${esc(e.title)}</span></div>`).join('')}</div>`).join('');}
+  const body=document.getElementById('secScheduleBody')||document.getElementById('scheduleBody');
+  if(!evs.length){if(body)body.innerHTML='<div class="empty">일정이 없습니다</div>';return;}
+  if(range==='today'){
+    if(body)body.innerHTML=evs.map(e=>`<div class="sched-line"><span class="s-time">${esc(e.time||'종일')}</span><span class="s-title">${esc(e.title)}</span><span class="s-place">${esc(e.place||'')}</span></div>`).join('');
+  } else {
+    const byDate={};evs.forEach(e=>{(byDate[e.date]=byDate[e.date]||[]).push(e)});
+    if(body)body.innerHTML=Object.entries(byDate).map(([d,list])=>`<div style="margin-bottom:12px"><div class="small" style="font-weight:800;color:var(--blue);margin-bottom:6px">${d}</div>${list.map(e=>`<div class="sched-line"><span class="s-time">${esc(e.time||'종일')}</span><span class="s-title">${esc(e.title)}</span></div>`).join('')}</div>`).join('');
+  }
 }
 async function toggleSchedule(id,v){try{await sb('/gcal_events?id=eq.'+id,{method:'PATCH',body:JSON.stringify({is_done:v})});await loadSchedule();await loadCalendar();}catch(e){}}
 
