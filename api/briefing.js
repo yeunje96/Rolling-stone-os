@@ -90,24 +90,23 @@ ${approvals > 0 ? `${approvals}건 처리 필요` : '없음'}
 JSON만 반환: {"telegram_message":"...","os_summary":"(3문장 핵심 요약)"}`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'claude-opus-4-8',
+        model: 'gpt-4o',
         max_tokens: 2000,
         messages: [{ role: 'user', content: prompt }]
       })
     });
 
-    if (!response.ok) throw new Error('Claude API 오류: ' + await response.text());
+    if (!response.ok) throw new Error('OpenAI API 오류: ' + await response.text());
 
     const data = await response.json();
-    const raw = data.content?.[0]?.text || '{}';
+    const raw = data.choices?.[0]?.message?.content || '{}';
     let parsed = {};
     try {
       const match = raw.match(/\{[\s\S]*\}/);

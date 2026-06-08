@@ -253,6 +253,18 @@ export default async function handler(req, res) {
             body: JSON.stringify({ token_usage: String(prev + totalTokens) })
           });
         }
+
+        // 직원별 토큰 누적 (employees 테이블 token_usage)
+        try {
+          const empRows = await sb(`/employees?select=id,token_usage&id=eq.${employee.id}`).catch(()=>[]);
+          if (empRows?.[0]) {
+            const prevEmp = parseInt(String(empRows[0].token_usage||'0').replace(/[^0-9]/g,''))||0;
+            await sb(`/employees?id=eq.${employee.id}`, {
+              method: 'PATCH',
+              body: JSON.stringify({ token_usage: String(prevEmp + totalTokens) })
+            });
+          }
+        } catch(e) {}
       }
     } catch(e) {}
 
