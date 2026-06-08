@@ -1915,6 +1915,23 @@ function applyLoginState(){
       const autoEl=document.getElementById('autoLogin');
       if(autoEl)autoEl.checked=true;
     }
+  } else {
+    // 로그인 상태 — config 로드 후 전체 데이터 초기화
+    initConfig().then(()=>{
+      // 공통 데이터 로드
+      loadEmployees();
+      loadTasks();
+      loadProjects();
+      loadRevenue();
+      loadWeeklyTodos();
+      loadCkYear();
+      loadCalendar();
+      loadSchedule();
+      loadApiCost();
+      loadSops();
+      // 홈 화면 표시
+      show('dashboard');
+    });
   }
 }
 function toggleSaveId(){
@@ -1969,7 +1986,8 @@ async function doLogin(ev){
     }
     localStorage.setItem(LOGIN_KEY,'1');
     if(data.token)localStorage.setItem('rs_token',data.token);
-    applyLoginState();show('dashboard');
+    await initConfig();
+    applyLoginState();
   }catch(e){
     errEl.style.display='block';
     errEl.textContent='로그인 처리 중 오류가 발생했습니다.';
