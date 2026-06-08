@@ -4523,7 +4523,7 @@ async function exportShorts(){
       name:`[쇼츠] ${keyword} — ${new Date().toLocaleDateString('ko-KR')}`,
       department:'마케팅팀',tag:'영상',owner:'박지훈',
       file_url:null,
-      report_content:`업로드 채널: ${channels}\n자막:\n${shortsSubtitles}`
+      report_content:`업로드 채널: ${channels`}\n자막:\n${shortsSubtitles}`
     }])});
     alert('산출물 센터에 등록됐습니다!');
     await log('쇼츠생성기',keyword+' 쇼츠 제작 완료');
@@ -4623,7 +4623,7 @@ async function generateVlogPlan(){
 - 업로드 최적 시간대
 - 해시태그 10개
 한국어로 답변하세요.`,
-        messages:[{role:'system',content:`당신은 유튜브/인스타 브이로그 기획 전문가입니다.},...({role:'user',content:`주제: ${topic}\n스타일: ${styleMap[style]}\n영상 길이: ${lengthMap[length]}\n채널: ${channelMap[channel]}\n\n위 내용으로 브이로그 기획안을 작성해줘.`})],
+        messages:[{role:'system',content:`당신은 유튜브/인스타 브이로그 기획 전문가입니다.`},{role:'user',content:`주제: ${topic`}\n스타일: ${styleMap[style]}\n영상 길이: ${lengthMap[length]}\n채널: ${channelMap[channel]}\n\n위 내용으로 브이로그 기획안을 작성해줘.`}],
       })
     });
     const data=await resp.json();
@@ -4665,7 +4665,7 @@ async function runReelsAudit(){
       method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
         model:'gpt-4o',max_tokens:3000,
-        messages:[{role:'system',content:REELS_AUDIT_PROMPT},...({role:'user',content:input})]
+        messages:[{role:'system',content:REELS_AUDIT_PROMPT},{role:'user',content:input}]
       })
     });
     const data=await resp.json();
@@ -4704,7 +4704,7 @@ async function generateReelsScript(){
       method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
         model:'gpt-4o',max_tokens:3000,
-        messages:[{role:'system',content:REELS_SCRIPT_SYSTEM},...({role:'user',content:`계정: ${handle||'내 계정'}\n타깃 오디언스: ${audience}\n\n계정 분석 결과를 바탕으로 30~55초 릴스 스크립트 3개를 한국어로 작성해줘. 최소 1개는 개인적이고 취약한 내용을 담아줘.`})]
+        messages:[{role:'system',content:REELS_SCRIPT_SYSTEM},{role:'user',content:`계정: ${handle||'내 계정'`}\n타깃 오디언스: ${audience}\n\n계정 분석 결과를 바탕으로 30~55초 릴스 스크립트 3개를 한국어로 작성해줘. 최소 1개는 개인적이고 취약한 내용을 담아줘.`}]
       })
     });
     const data=await resp.json();
@@ -4731,7 +4731,7 @@ async function generateContentCalendar(){
       method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
         model:'gpt-4o',max_tokens:2000,
-        messages:[{role:'system',content:'당신은 Instagram 콘텐츠 전략가입니다. 7일 콘텐츠 캘린더를 한국어 표 형식으로 작성하세요. 각 날짜별: 포맷(릴스/캐러셀/스토리), 콘텐츠 필러, 훅 한 줄, 전략적 이유.'},...({role:'user',content:`계정 정보: ${ctx}\n\n감사 결과를 바탕으로 7일 인스타그램 콘텐츠 캘린더를 만들어줘. 강점을 살리고 blind spot을 보완하는 방향으로.`})],
+        messages:[{role:'system',content:'당신은 Instagram 콘텐츠 전략가입니다. 7일 콘텐츠 캘린더를 한국어 표 형식으로 작성하세요. 각 날짜별: 포맷(릴스/캐러셀/스토리), 콘텐츠 필러, 훅 한 줄, 전략적 이유.'},{role:'user',content:`계정 정보: ${ctx`}\n\n감사 결과를 바탕으로 7일 인스타그램 콘텐츠 캘린더를 만들어줘. 강점을 살리고 blind spot을 보완하는 방향으로.`}],
       })
     });
     const data=await resp.json();
@@ -4750,7 +4750,7 @@ async function rewriteHook(){
       method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
         model:'gpt-4o',max_tokens:1000,
-        messages:[{role:'system',content:'인스타그램 바이럴 훅 전문가입니다. 주어진 훅을 5가지 공식으로 다시 써주세요: 호기심 갭, 대담한 주장, 직접 질문, 숫자+고백, "아무도 말 안 하는". 각 12단어 이하. 가장 추천하는 것과 이유도 알려주세요. 한국어로.'},...({role:'user',content:`원래 훅: ${hook}\n\n5가지 바이럴 훅으로 다시 써줘.`})],
+        messages:[{role:'system',content:'인스타그램 바이럴 훅 전문가입니다. 주어진 훅을 5가지 공식으로 다시 써주세요: 호기심 갭, 대담한 주장, 직접 질문, 숫자+고백, "아무도 말 안 하는". 각 12단어 이하. 가장 추천하는 것과 이유도 알려주세요. 한국어로.'},{role:'user',content:`원래 훅: ${hook`}\n\n5가지 바이럴 훅으로 다시 써줘.`}],
       })
     });
     const data=await resp.json();
@@ -4770,7 +4770,7 @@ async function generateCaption(){
       method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
         model:'gpt-4o',max_tokens:1000,
-        messages:[{role:'system',content:'인스타그램 캡션 전문가입니다. 짧고 임팩트 있는 한국어 캡션 3개를 작성하세요. 댓글 유도 CTA로 시작하고, 자연스러운 말투를 유지하세요.'},...({role:'user',content:`릴스 내용: ${desc}\n댓글 키워드: ${keyword||'없음'}\n\n캡션 3개 써줘.`})],
+        messages:[{role:'system',content:'인스타그램 캡션 전문가입니다. 짧고 임팩트 있는 한국어 캡션 3개를 작성하세요. 댓글 유도 CTA로 시작하고, 자연스러운 말투를 유지하세요.'},{role:'user',content:`릴스 내용: ${desc`}\n댓글 키워드: ${keyword||'없음'}\n\n캡션 3개 써줘.`}],
       })
     });
     const data=await resp.json();
@@ -4825,7 +4825,7 @@ async function generatePosterPrompt(){
 아래 정보를 바탕으로 Canva에서 사용할 영문 포스터 생성 프롬프트를 작성하세요.
 FORMAT, TYPOGRAPHY, MAIN VISUAL, COLOR, STYLE, FX 섹션을 포함하세요.
 프롬프트만 출력하고 설명은 하지 마세요.`,
-        messages:[{role:'system',content:`당신은 Canva 포스터 생성 전문 프롬프트 엔지니어입니다.},...({role:'user',content:`용도: ${use}\n비율: ${ratio}\n제목/텍스트: ${title}\n분위기: ${mood}\n컬러: ${colorDesc}\n베이스 템플릿: ${baseTemplate}\n\n위 내용으로 Canva 포스터 생성 프롬프트를 작성해줘.`})],
+        messages:[{role:'system',content:`당신은 Canva 포스터 생성 전문 프롬프트 엔지니어입니다.`},{role:'user',content:`용도: ${use`}\n비율: ${ratio}\n제목/텍스트: ${title}\n분위기: ${mood}\n컬러: ${colorDesc}\n베이스 템플릿: ${baseTemplate}\n\n위 내용으로 Canva 포스터 생성 프롬프트를 작성해줘.`}],
       })
     });
     const data=await resp.json();
@@ -4859,7 +4859,7 @@ async function fetchNaverKeywords(){
       method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
         model:'gpt-4o',max_tokens:800,
-        messages:[{role:'system',content:`당신은 네이버 SEO 전문가입니다. 네이버 실시간 검색어 트렌드와 블로그 SEO를 기반으로 키워드를 추천합니다. JSON 배열만 반환하세요.`},...({role:'user',content:`블로그 주제: ${theme}, 분야: ${cat}\n\n현재 네이버에서 검색량이 많거나 트렌딩 중인 키워드 20개를 추천해줘.\n형식: ["키워드1","키워드2",...)] JSON 배열만 반환`}]
+        messages:[{role:'system',content:`당신은 네이버 SEO 전문가입니다. 네이버 실시간 검색어 트렌드와 블로그 SEO를 기반으로 키워드를 추천합니다. JSON 배열만 반환하세요.`},{role:'user',content:`블로그 주제: ${theme`}, 분야: ${cat}\n\n현재 네이버에서 검색량이 많거나 트렌딩 중인 키워드 20개를 추천해줘.\n형식: ["키워드1","키워드2",...)] JSON 배열만 반환`}]
       })
     });
     const data=await resp.json();
@@ -4912,7 +4912,7 @@ async function generateNaverPost(){
 - 메인 키워드 5~7회 자연스럽게
 - 이미지 위치 [이미지: 설명] 형태 표시
 - 마무리: 공감/댓글 유도 CTA`,
-        messages:[{role:'system',content:`당신은 네이버 블로그 SEO 전문가이자 콘텐츠 라이터입니다.},...({role:'user',content:`메인 키워드: ${kw}\n서브 키워드: ${sub||'없음'}\n말투: ${toneMap[tone]}\n글 길이: ${lenMap[len]}\n\n네이버 블로그 SEO 최적화 글을 작성해줘.`})],
+        messages:[{role:'system',content:`당신은 네이버 블로그 SEO 전문가이자 콘텐츠 라이터입니다.`},{role:'user',content:`메인 키워드: ${kw`}\n서브 키워드: ${sub||'없음'}\n말투: ${toneMap[tone]}\n글 길이: ${lenMap[len]}\n\n네이버 블로그 SEO 최적화 글을 작성해줘.`}],
       })
     });
     const data=await resp.json();
@@ -5003,7 +5003,7 @@ async function generateCoupangThread(){
 ※ 댓글에 직접 링크 대신 "프로필 링크에서 확인하세요" 문구 사용
 [광고 표시] 반드시 "[광고] 이 포스팅은 쿠팡 파트너스 활동의 일환" 포함
 JSON으로만 반환: {"main":"본문","comment":"댓글","hashtags":["태그1",...]}`,
-        messages:[{role:'system',content:`당신은 스레드(Threads) 쿠팡 파트너스 전문 마케터입니다.},...({role:'user',content:`상품: ${name||'링크 참조'}\n가격: ${price||'미정'}\nURL: ${url}\n말투: ${toneMap[tone]}\n계정: ${account}번\n\n스레드 게시글 생성해줘`})],
+        messages:[{role:'system',content:`당신은 스레드(Threads) 쿠팡 파트너스 전문 마케터입니다.`},{role:'user',content:`상품: ${name||'링크 참조'`}\n가격: ${price||'미정'}\nURL: ${url}\n말투: ${toneMap[tone]}\n계정: ${account}번\n\n스레드 게시글 생성해줘`}],
       })
     });
     const data=await resp.json();
@@ -5047,7 +5047,7 @@ async function generateThread(){
       body:JSON.stringify({
         model:'gpt-4o',max_tokens:600,
 JSON으로만 반환: {"main":"본문","comment":"댓글(선택)","hashtags":["태그"]}`,
-        messages:[{role:'system',content:`당신은 스레드 전문 작가입니다. ${tags?`학습 태그: ${tags}`:''}},...({role:'user',content:`주제: ${topic}\n유형: ${typeMap[type]}\n\n스레드 글 작성해줘`})],
+        messages:[{role:'system',content:`당신은 스레드 전문 작가입니다. ${tags?`학습 태그: ${tags}`:''}`},{role:'user',content:`주제: ${topic`}\n유형: ${typeMap[type]}\n\n스레드 글 작성해줘`}],
       })
     });
     const data=await resp.json();
@@ -5126,7 +5126,7 @@ async function generateXhsScript(){
 한국어 본문 3개 + 각각의 중국어 번역을 생성하세요.
 JSON으로만 반환:
 {"scripts":[{"korean":"한국어본문","chinese":"中文翻译","hashtags_kr":["태그"],"hashtags_cn":["标签"]},...]}`,
-        messages:[{role:'system',content:`당신은 샤오홍슈(小红书) 전문 콘텐츠 크리에이터입니다.},...({role:'user',content:`콘텐츠: ${desc}\n카테고리: ${catMap[cat]}\n분위기: ${moodMap[mood]}\n\n샤오홍슈 본문 3개 (한국어+중국어) 생성해줘`})],
+        messages:[{role:'system',content:`당신은 샤오홍슈(小红书) 전문 콘텐츠 크리에이터입니다.`},{role:'user',content:`콘텐츠: ${desc`}\n카테고리: ${catMap[cat]}\n분위기: ${moodMap[mood]}\n\n샤오홍슈 본문 3개 (한국어+중국어) 생성해줘`}],
       })
     });
     const data=await resp.json();
@@ -5286,7 +5286,7 @@ async function processMemFile(){
     const rows=memories.map(m=>({
       department:'_memory',
       title:`mem_${empId}`,
-      content:`[${m.category}][출처: ${memFileName||'파일'}${note?' / '+note:''}] ${m.content}`,
+      content:`[${m.category`}][출처: ${memFileName||'파일'}${note?' / '+note:''}] ${m.content}`,
       project:emp2?emp2.name:'',
       status:'active'
     }));
@@ -5407,7 +5407,7 @@ JSON만 반환:
   ...
 ]}`,
         messages:[{role:'user',content:`다음 조건으로 Suno 프롬프트 5개 만들어줘:
-분위기: ${mood||'자유'}
+분위기: ${mood||'자유'`}
 장르/스타일: ${genreStr}
 보컬: ${vocal}
 템포: ${bpmStr||'자유'}
