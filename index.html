@@ -4610,20 +4610,23 @@ async function generateVlogPlan(){
   const styleMap={daily:'일상',work:'직장인/사업가',travel:'여행',challenge:'챌린지/도전'};
   const lengthMap={short:'5~10분',medium:'10~20분',long:'20분 이상'};
   const channelMap={youtube:'유튜브',insta:'인스타그램',both:'유튜브+인스타 동시'};
-  try{
-    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
-      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
-      body:JSON.stringify({
-        model:'gpt-4o',max_tokens:2000,
-시청자를 끝까지 붙잡는 브이로그 구성을 만들어주세요.
+  const vlogSystemPrompt=`당신은 유튜브/인스타 브이로그 기획 전문가입니다. 시청자를 끝까지 붙잡는 브이로그 구성을 만들어주세요.
 - 썸네일 제목 3개 (클릭률 높게)
 - 오프닝 훅 (첫 15초)
 - 챕터별 구성 (시간 포함)
 - BGM 분위기 추천
 - 업로드 최적 시간대
 - 해시태그 10개
-한국어로 답변하세요.`,
-        messages:[{role:'system',content:`당신은 유튜브/인스타 브이로그 기획 전문가입니다.`},{role:'user',content:`주제: ${topic}\n스타일: ${styleMap[style]}\n영상 길이: ${lengthMap[length]}\n채널: ${channelMap[channel]}\n\n위 내용으로 브이로그 기획안을 작성해줘.`}],
+한국어로 답변하세요.`;
+  try{
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
+      body:JSON.stringify({
+        model:'gpt-4o',max_tokens:2000,
+        messages:[
+          {role:'system',content:vlogSystemPrompt},
+          {role:'user',content:`주제: ${topic}\n스타일: ${styleMap[style]}\n영상 길이: ${lengthMap[length]}\n채널: ${channelMap[channel]}\n\n위 내용으로 브이로그 기획안을 작성해줘.`}
+        ]
       })
     });
     const data=await resp.json();
@@ -4822,10 +4825,9 @@ async function generatePosterPrompt(){
       method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
         model:'gpt-4o',max_tokens:1500,
-아래 정보를 바탕으로 Canva에서 사용할 영문 포스터 생성 프롬프트를 작성하세요.
+        messages:[{role:'system',content:`아래 정보를 바탕으로 Canva에서 사용할 영문 포스터 생성 프롬프트를 작성하세요.
 FORMAT, TYPOGRAPHY, MAIN VISUAL, COLOR, STYLE, FX 섹션을 포함하세요.
-프롬프트만 출력하고 설명은 하지 마세요.`,
-        messages:[{role:'system',content:`당신은 Canva 포스터 생성 전문 프롬프트 엔지니어입니다.`},{role:'user',content:`용도: ${use}\n비율: ${ratio}\n제목/텍스트: ${title}\n분위기: ${mood}\n컬러: ${colorDesc}\n베이스 템플릿: ${baseTemplate}\n\n위 내용으로 Canva 포스터 생성 프롬프트를 작성해줘.`}],
+프롬프트만 출력하고 설명은 하지 마세요.`},{role:'user',content:`용도: ${use}\n비율: ${ratio}\n제목/텍스트: ${title}\n분위기: ${mood}\n컬러: ${colorDesc}\n베이스 템플릿: ${baseTemplate}\n\n위 내용으로 Canva 포스터 생성 프롬프트를 작성해줘.`}],
       })
     });
     const data=await resp.json();
@@ -4897,7 +4899,7 @@ async function generateNaverPost(){
       method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
         model:'gpt-4o',max_tokens:3000,
-[핵심 원칙]
+        messages:[{role:'system',content:`[핵심 원칙]
 - 인사말(안녕하세요) 절대 금지, 첫 줄에 결론/사건/변화가 있어야 함
 - 결론 먼저 (두괄식), 상단에 정답 박스 (결론 1줄 + 요약 3줄 + 실행 3단계)
 - 🔥직접적인 경험🔥을 글 전체에 자연스럽게 녹여낼 것
@@ -4911,8 +4913,7 @@ async function generateNaverPost(){
 - 소제목(##) 3~5개
 - 메인 키워드 5~7회 자연스럽게
 - 이미지 위치 [이미지: 설명] 형태 표시
-- 마무리: 공감/댓글 유도 CTA`,
-        messages:[{role:'system',content:`당신은 네이버 블로그 SEO 전문가이자 콘텐츠 라이터입니다.`},{role:'user',content:`메인 키워드: ${kw}\n서브 키워드: ${sub||'없음'}\n말투: ${toneMap[tone]}\n글 길이: ${lenMap[len]}\n\n네이버 블로그 SEO 최적화 글을 작성해줘.`}],
+- 마무리: 공감/댓글 유도 CTA`},{role:'user',content:`메인 키워드: ${kw}\n서브 키워드: ${sub||'없음'}\n말투: ${toneMap[tone]}\n글 길이: ${lenMap[len]}\n\n네이버 블로그 SEO 최적화 글을 작성해줘.`}],
       })
     });
     const data=await resp.json();
@@ -4997,13 +4998,12 @@ async function generateCoupangThread(){
       method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
         model:'gpt-4o',max_tokens:1000,
-스레드 게시글 구조:
+        messages:[{role:'system',content:`스레드 게시글 구조:
 [본문] 150자 이내, 훅+상품소개+가격
 [댓글] 구매 링크는 프로필에서 확인 가능 안내 + 광고 표시
 ※ 댓글에 직접 링크 대신 "프로필 링크에서 확인하세요" 문구 사용
 [광고 표시] 반드시 "[광고] 이 포스팅은 쿠팡 파트너스 활동의 일환" 포함
-JSON으로만 반환: {"main":"본문","comment":"댓글","hashtags":["태그1",...]}`,
-        messages:[{role:'system',content:`당신은 스레드(Threads) 쿠팡 파트너스 전문 마케터입니다.`},{role:'user',content:`상품: ${name||'링크 참조'}\n가격: ${price||'미정'}\nURL: ${url}\n말투: ${toneMap[tone]}\n계정: ${account}번\n\n스레드 게시글 생성해줘`}],
+JSON으로만 반환: {"main":"본문","comment":"댓글","hashtags":["태그1",...]}`},{role:'user',content:`상품: ${name||'링크 참조'}\n가격: ${price||'미정'}\nURL: ${url}\n말투: ${toneMap[tone]}\n계정: ${account}번\n\n스레드 게시글 생성해줘`}],
       })
     });
     const data=await resp.json();
@@ -5046,7 +5046,6 @@ async function generateThread(){
       method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
         model:'gpt-4o',max_tokens:600,
-JSON으로만 반환: {"main":"본문","comment":"댓글(선택)","hashtags":["태그"]}`,
         messages:[{role:'system',content:`당신은 스레드 전문 작가입니다. ${tags?`학습 태그: ${tags}`:''}`},{role:'user',content:`주제: ${topic}\n유형: ${typeMap[type]}\n\n스레드 글 작성해줘`}],
       })
     });
@@ -5123,10 +5122,9 @@ async function generateXhsScript(){
       method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
         model:'gpt-4o',max_tokens:1500,
-한국어 본문 3개 + 각각의 중국어 번역을 생성하세요.
+        messages:[{role:'system',content:`한국어 본문 3개 + 각각의 중국어 번역을 생성하세요.
 JSON으로만 반환:
-{"scripts":[{"korean":"한국어본문","chinese":"中文翻译","hashtags_kr":["태그"],"hashtags_cn":["标签"]},...]}`,
-        messages:[{role:'system',content:`당신은 샤오홍슈(小红书) 전문 콘텐츠 크리에이터입니다.`},{role:'user',content:`콘텐츠: ${desc}\n카테고리: ${catMap[cat]}\n분위기: ${moodMap[mood]}\n\n샤오홍슈 본문 3개 (한국어+중국어) 생성해줘`}],
+{"scripts":[{"korean":"한국어본문","chinese":"中文翻译","hashtags_kr":["태그"],"hashtags_cn":["标签"]},...]}`},{role:'user',content:`콘텐츠: ${desc}\n카테고리: ${catMap[cat]}\n분위기: ${moodMap[mood]}\n\n샤오홍슈 본문 3개 (한국어+중국어) 생성해줘`}],
       })
     });
     const data=await resp.json();
