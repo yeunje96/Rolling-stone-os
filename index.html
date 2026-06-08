@@ -1934,7 +1934,7 @@ async function doLogin(ev){
 
   try{
     const resp=await fetch('/api/login',{
-      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
+      method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({id,pw})
     });
     const data=await resp.json();
