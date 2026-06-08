@@ -2494,7 +2494,9 @@ async function deleteSop(id){if(!confirm('이 절차를 삭제할까요?'))retur
 /* ============ 대표관리: weekly / calendar / year checklist ============ */
 let weeklyDragId=null;
 async function loadWeeklyTodos(){
- let rows=[];try{rows=await sb('/weekly_todos?select=*&order=created_at.asc')}catch(e){}
+ let rows=[];
+ try{rows=await sb('/weekly_todos?select=*&order=sort_order.asc.nullsfirst,created_at.asc')}
+ catch(e){try{rows=await sb('/weekly_todos?select=*&order=created_at.asc')}catch(e2){}}
  const body=document.getElementById('weeklyTodoBody');
  if(!rows.length){body.innerHTML='<div class="empty">등록된 할일이 없습니다</div>';return;}
  body.innerHTML=rows.map(t=>`<div class="check-item ${t.is_done?'done':''}" draggable="true" data-id="${t.id}"
@@ -2524,6 +2526,9 @@ async function weeklyDrop(event,targetId){
  const toIdx=allItems.indexOf(toEl);
  if(fromIdx<toIdx)toEl.after(fromEl);else toEl.before(fromEl);
  weeklyDragId=null;
+ // sort_order DB 저장 시도 (컬럼 없으면 실패해도 UI는 유지됨)
+ const ordered=[...body.querySelectorAll('.check-item')].map(el=>el.dataset.id);
+ Promise.all(ordered.map((id,i)=>sb('/weekly_todos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({sort_order:i})}))).catch(()=>{});
 }
 async function saveWeeklyTodo(){const i=document.getElementById('weeklyTodoTitle');if(!i.value.trim())return alert('할일을 입력하세요');try{await sb('/weekly_todos',{method:'POST',body:JSON.stringify([{title:i.value,is_done:false}])});i.value='';closeModal('weeklyTodoModal');await loadWeeklyTodos();await log('대표관리','이번주 할일 추가')}catch(e){alert(e.message)}}
 async function toggleWeekly(id,v){try{await sb('/weekly_todos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({is_done:v})});await loadWeeklyTodos()}catch(e){}}
@@ -2709,7 +2714,10 @@ function ckDrop(e,m,i){
   if(!monthItems)return;
   const moved=monthItems.splice(fromIdx,1)[0];
   monthItems.splice(i,0,moved);
-  // UI만 재렌더링 (sort_order 컬럼 없으므로 DB 저장 없이 순서 유지)
+  // sort_order DB 저장 시도 (컬럼 없으면 실패해도 UI는 유지됨)
+  Promise.all(monthItems.map((item,idx)=>
+    sb('/year_checklist?id=eq.'+item.id,{method:'PATCH',body:JSON.stringify({sort_order:idx})})
+  )).catch(()=>{});
   loadCkYear();
 }
 
@@ -3677,31 +3685,39 @@ async function loadApiManager(){
 
   // 1. 전체 누적 토큰 + 비용 (Supabase projects)
   let projects=[];
-  try{projects=await sb('/projects?select=name,token_usage&order=token_usage.desc&limit=50');}catch(e){}
-  const totalTokens=projects.reduce((s,p)=>s+parseT(p.token_usage),0);
-  const totalKrw=tokenToKrw(totalTokens);
-  const totalUsd=(totalTokens*0.00001).toFixed(2);
-  document.getElementById('apiTotalKrw').textContent='₩'+totalKrw.toLocaleString();
-  document.getElementById('apiTotalUsd').textContent='$'+totalUsd;
-  document.getElementById('apiTotalTokens').textContent=totalTokens.toLocaleString();
-  // 이번달 비용 = 전체 누적의 이번달 생성 프로젝트 토큰 (token_updated_at 없으므로 전체의 1/12 근사 대신 messages 테이블 활용)
-  try{
-    const thisMonth=new Date().toISOString().slice(0,7);
-    const msgs=await sb('/messages?select=created_at&created_at=gte.'+thisMonth+'-01&limit=1000');
-    // 메시지 1건당 평균 500토큰 추정 (실제 토큰 컬럼 없으므로)
-    const monthTokenEst=msgs.length*500;
-    const monthKrw=tokenToKrw(monthTokenEst);
-    const monthUsd=(monthTokenEst*0.00001).toFixed(2);
-    document.getElementById('apiMonthKrw').textContent='₩'+monthKrw.toLocaleString();
-    document.getElementById('apiMonthUsd').textContent='$'+monthUsd+'(추정)';
-  }catch(e){
-    document.getElementById('apiMonthKrw').textContent='₩0';
-    document.getElementById('apiMonthUsd').textContent='$0';
+  let projectErr=false;
+  try{projects=await sb('/projects?select=name,token_usage&order=token_usage.desc&limit=50');}
+  catch(e){projectErr=true;}
+
+  if(projectErr){
+    document.getElementById('apiTotalKrw').textContent='집계 실패';
+    document.getElementById('apiTotalTokens').textContent='-';
+    document.getElementById('apiMonthKrw').textContent='-';
+  } else {
+    const totalTokens=projects.reduce((s,p)=>s+parseT(p.token_usage),0);
+    const totalKrw=tokenToKrw(totalTokens);
+    const totalUsd=(totalTokens*0.00001).toFixed(2);
+    document.getElementById('apiTotalKrw').textContent='₩'+totalKrw.toLocaleString();
+    document.getElementById('apiTotalUsd').textContent='$'+totalUsd;
+    document.getElementById('apiTotalTokens').textContent=totalTokens.toLocaleString();
+    const secApi=document.getElementById('secApi');
+    if(secApi)secApi.textContent='₩'+totalKrw.toLocaleString()+' ($'+totalUsd+')';
+    const homeApi=document.getElementById('homeApi');
+    if(homeApi)homeApi.innerHTML=`<span style="font-size:15px">₩${totalKrw.toLocaleString()}</span><br><span style="font-size:11px;color:var(--sub)">$${totalUsd}</span>`;
+
+    // 이번달 비용 — settings 테이블 실데이터
+    try{
+      const now=new Date();
+      const monthKey=`api_cost_${now.getFullYear()}_${String(now.getMonth()+1).padStart(2,'0')}`;
+      const rows=await sb('/settings?select=value&id=eq.'+monthKey);
+      const monthKrw=rows?.[0]?.value?Number(rows[0].value):0;
+      document.getElementById('apiMonthKrw').textContent='₩'+monthKrw.toLocaleString();
+      document.getElementById('apiMonthUsd').textContent='$'+(monthKrw/USD_KRW).toFixed(2);
+    }catch(e){
+      document.getElementById('apiMonthKrw').textContent='₩0';
+      document.getElementById('apiMonthUsd').textContent='$0';
+    }
   }
-  const secApi=document.getElementById('secApi');
-  if(secApi)secApi.textContent='₩'+totalKrw.toLocaleString()+' ($'+totalUsd+')';
-  const homeApi=document.getElementById('homeApi');
-  if(homeApi)homeApi.innerHTML=`<span style="font-size:15px">₩${totalKrw.toLocaleString()}</span><br><span style="font-size:11px;color:var(--sub)">$${totalUsd}</span>`;
 
   // 프로젝트 행 생성 헬퍼
   const projRows=(list,tbodyId,cols)=>{
@@ -3715,34 +3731,29 @@ async function loadApiManager(){
     }).join(''):`<tr><td colspan="${cols}" class="empty">토큰 사용 기록 없음</td></tr>`;
   };
 
-  // 2. 전체 탭 - 프로젝트별
   projRows(projects,'apiProjectBody',3);
+  projRows(projects,'apiDayProjectBody',3);
+  projRows(projects,'apiWeekProjectBody',3);
+  projRows(projects,'apiMonthProjectBody',3);
 
-  // 3. 전체 탭 - 직원별 토큰 + 완료 업무
-  try{
-    const [emps, tasks] = await Promise.all([
-      sb('/employees?select=name,token_usage&limit=20').catch(()=>[]),
-      sb('/tasks?select=assigned_employee_name,created_at&status=eq.완료&limit=500').catch(()=>[])
-    ]);
-    const empCount={};
-    tasks.forEach(t=>{if(t.assigned_employee_name)empCount[t.assigned_employee_name]=(empCount[t.assigned_employee_name]||0)+1;});
-    const empBody=document.getElementById('apiEmployeeBody');
-    if(empBody){
+  // 직원별 토큰 + 완료 업무
+  const empBody=document.getElementById('apiEmployeeBody');
+  if(empBody){
+    try{
+      const [emps,tasks]=await Promise.all([
+        sb('/employees?select=name,token_usage&limit=20'),
+        sb('/tasks?select=assigned_employee_name&status=eq.완료&limit=500')
+      ]);
+      const empCount={};
+      tasks.forEach(t=>{if(t.assigned_employee_name)empCount[t.assigned_employee_name]=(empCount[t.assigned_employee_name]||0)+1;});
       const sorted=emps.sort((a,b)=>parseT(b.token_usage)-parseT(a.token_usage));
       empBody.innerHTML=sorted.length?sorted.map(e=>{
         const t=parseT(e.token_usage);
         const cnt=empCount[e.name]||0;
         return `<tr><td class="small" style="font-weight:600">${esc(e.name)}</td><td class="small">${t>0?t.toLocaleString()+' T':'-'}</td><td class="small">${cnt}건</td></tr>`;
-      }).join(''):'<tr><td colspan="3" class="empty">데이터 없음</td></tr>';
-    }
-
-    // 4. 일별 탭
-  }catch(e){}
-
-  // 일별/주별/월별 프로젝트 탭
-  projRows(projects,'apiDayProjectBody',3);
-  projRows(projects,'apiWeekProjectBody',3);
-  projRows(projects,'apiMonthProjectBody',3);
+      }).join(''):'<tr><td colspan="3" class="empty">직원 데이터 없음</td></tr>';
+    }catch(e){empBody.innerHTML='<tr><td colspan="3" class="empty">집계 실패</td></tr>';}
+  }
 }
 
 /* ============ 시스템 관리 ============ */

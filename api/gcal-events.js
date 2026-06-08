@@ -1,5 +1,5 @@
-const SUPABASE_URL = 'https://lkcmgritsfjgvqsldqmc.supabase.co/rest/v1';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrY21ncml0c2ZqZ3Zxc2xkcW1jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTA3MzcsImV4cCI6MjA5NDQyNjczN30.x8v1q8-nCaRRtEJT-9GBoYl34R_KL0wB-UVmBJx_D9Q';
+const SUPABASE_URL = (process.env.SUPABASE_URL || 'https://lkcmgritsfjgvqsldqmc.supabase.co').replace(/\/rest\/v1\/?$/, '') + '/rest/v1';
+const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || '';
 const GCAL_TITLE = '__gcal_token__';
 
 async function getTokens() {
@@ -12,7 +12,7 @@ async function getTokens() {
 }
 
 async function saveTokens(tokens) {
-  await fetch(SUPABASE_URL + '/sops?title=eq.' + encodeURIComponent(GCAL_TITLE), {
+  await fetch(SUPABASE_URL + '/sops?department=eq._system&title=eq.' + encodeURIComponent(GCAL_TITLE), {
     method: 'DELETE',
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
   });

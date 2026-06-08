@@ -1,6 +1,6 @@
 // 총괄이사 이준혁 — 텔레그램 업무 보고 API
-const SUPABASE_URL = 'https://lkcmgritsfjgvqsldqmc.supabase.co/rest/v1';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrY21ncml0c2ZqZ3Zxc2xkcW1jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTA3MzcsImV4cCI6MjA5NDQyNjczN30.x8v1q8-nCaRRtEJT-9GBoYl34R_KL0wB-UVmBJx_D9Q';
+const SUPABASE_URL = (process.env.SUPABASE_URL || 'https://lkcmgritsfjgvqsldqmc.supabase.co').replace(/\/rest\/v1\/?$/, '') + '/rest/v1';
+const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || '';
 
 async function sb(path) {
   const res = await fetch(SUPABASE_URL + path, {
@@ -82,23 +82,22 @@ ${approvals.length ? approvals.slice(0,3).map(a=>`• ${a.title}`).join('\n') : 
 
 JSON만 반환: {"message": "텔레그램 메시지 내용"}`;
 
-    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+    const apiRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'claude-opus-4-8',
+        model: 'gpt-4o',
         max_tokens: 600,
         messages: [{ role: 'user', content: prompt }]
       })
     });
 
-    if (!apiRes.ok) throw new Error('Claude API 오류: ' + await apiRes.text());
+    if (!apiRes.ok) throw new Error('OpenAI API 오류: ' + await apiRes.text());
     const apiData = await apiRes.json();
-    const raw = apiData.content?.[0]?.text || '{}';
+    const raw = apiData.choices?.[0]?.message?.content || '{}';
 
     let message = '';
     try {

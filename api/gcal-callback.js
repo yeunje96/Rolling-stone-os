@@ -1,6 +1,6 @@
 // gcal 토큰 → sops 테이블에 저장 (agent_memory는 RLS 막힘, settings.value는 integer)
-const SUPABASE_URL = 'https://lkcmgritsfjgvqsldqmc.supabase.co/rest/v1';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrY21ncml0c2ZqZ3Zxc2xkcW1jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTA3MzcsImV4cCI6MjA5NDQyNjczN30.x8v1q8-nCaRRtEJT-9GBoYl34R_KL0wB-UVmBJx_D9Q';
+const SUPABASE_URL = (process.env.SUPABASE_URL || 'https://lkcmgritsfjgvqsldqmc.supabase.co').replace(/\/rest\/v1\/?$/, '') + '/rest/v1';
+const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || '';
 
 const GCAL_TITLE = '__gcal_token__';
 
@@ -43,8 +43,8 @@ export default async function handler(req, res) {
       expires_at: Date.now() + (tokens.expires_in * 1000)
     });
 
-    // 기존 토큰 삭제 후 재저장 (sops 테이블)
-    await sbFetch(`/sops?title=eq.${encodeURIComponent(GCAL_TITLE)}`, { method: 'DELETE' });
+    // UPSERT: 기존 토큰 삭제 후 재저장
+    await sbFetch(`/sops?department=eq._system&title=eq.${encodeURIComponent(GCAL_TITLE)}`, { method: 'DELETE' });
     const saveRes = await sbFetch('/sops', {
       method: 'POST',
       headers: { 'Prefer': 'return=minimal' },
