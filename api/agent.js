@@ -35,7 +35,16 @@ const COMMON_RULES = `[공통 행동 지침]
 }
 
 actions 없으면 반드시 빈 배열 [].
-JSON 외 다른 텍스트 절대 금지.`;
+JSON 외 다른 텍스트 절대 금지.
+
+[사용 가능한 actions]
+- memory_save: {"type":"memory_save","content":"저장할 내용"}
+- task_create: {"type":"task_create","title":"업무명","content":"상세내용"}
+- project_update: {"type":"project_update","project_name":"프로젝트명","status":"상태값","description":"설명(선택)"}
+  상태값: 대기 | 진행중 | 검토중 | 보류 | 완료
+- output_create: {"type":"output_create","title":"산출물명","content":"내용","output_type":"문서|이미지|영상|기타","project":"프로젝트명(선택)"}
+- sop_propose: {"type":"sop_propose","title":"SOP명","content":"내용"}
+- prompt_update: {"type":"prompt_update","title":"제목","content":"내용"}`;
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -191,6 +200,28 @@ export default async function handler(req, res) {
               assigned_employee_id: employee.id,
               assigned_employee_name: employee.name,
               status: '대기'
+            }])
+          });
+        } else if (action.type === 'project_update') {
+          // 프로젝트 상태 변경 (이름으로 조회 후 PATCH)
+          const rows = await sb(`/projects?select=id&name=eq.${encodeURIComponent(action.project_name)}&limit=1`).catch(()=>[]);
+          if (rows?.[0]?.id) {
+            await sb(`/projects?id=eq.${rows[0].id}`, {
+              method: 'PATCH',
+              body: JSON.stringify({ status: action.status, ...(action.description ? { description: action.description } : {}) })
+            });
+          }
+        } else if (action.type === 'output_create') {
+          // 산출물 저장
+          await sb('/outputs', {
+            method: 'POST',
+            body: JSON.stringify([{
+              title: action.title,
+              content: action.content,
+              type: action.output_type || '문서',
+              created_by: employee.name,
+              project: action.project || null,
+              status: '완료'
             }])
           });
         } else if (['sop_propose', 'prompt_update'].includes(action.type)) {

@@ -17,19 +17,14 @@ export default async function handler(req, res) {
         role: 'user',
         content: [
           {
-            type: 'image',
-            source: {
-              type: 'base64',
-              media_type: media_type || 'image/jpeg',
-              data: file_data
+            type: 'image_url',
+            image_url: {
+              url: `data:${media_type || 'image/jpeg'};base64,${file_data}`
             }
           },
           {
             type: 'text',
-            text: `이 이미지를 분석해서 ${emp_name}이(가) 업무에 활용할 수 있는 핵심 정보를 추출해줘.${note ? ' 참고: ' + note : ''}
-
-JSON만 반환 (최대 8개):
-{"memories":[{"category":"분류명","content":"핵심 내용 2~3문장"},...]}`
+            text: `이 이미지를 분석해서 ${emp_name}이(가) 업무에 활용할 수 있는 핵심 정보를 추출해줘.${note ? ' 참고: ' + note : ''}\n\nJSON만 반환 (최대 8개):\n{"memories":[{"category":"분류명","content":"핵심 내용 2~3문장"},...]}`
           }
         ]
       }];
@@ -37,33 +32,26 @@ JSON만 반환 (최대 8개):
       const truncated = file_data.slice(0, 60000);
       messages = [{
         role: 'user',
-        content: `다음 문서를 분석해서 ${emp_name}이(가) 업무에 활용할 수 있는 핵심 정보를 추출해줘.${note ? ' 참고: ' + note : ''}
-
-[문서 내용]
-${truncated}${file_data.length > 60000 ? '\n\n(이하 생략)' : ''}
-
-JSON만 반환 (최대 10개):
-{"memories":[{"category":"분류명","content":"핵심 내용 2~3문장"},...]}`
+        content: `다음 문서를 분석해서 ${emp_name}이(가) 업무에 활용할 수 있는 핵심 정보를 추출해줘.${note ? ' 참고: ' + note : ''}\n\n[문서 내용]\n${truncated}${file_data.length > 60000 ? '\n\n(이하 생략)' : ''}\n\nJSON만 반환 (최대 10개):\n{"memories":[{"category":"분류명","content":"핵심 내용 2~3문장"},...]}`
       }];
     }
 
-    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+    const apiRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'claude-opus-4-8',
+        model: 'gpt-4o',
         max_tokens: 2000,
         messages
       })
     });
 
-    if (!apiRes.ok) throw new Error('Claude API 오류: ' + await apiRes.text());
+    if (!apiRes.ok) throw new Error('OpenAI API 오류: ' + await apiRes.text());
     const data = await apiRes.json();
-    const raw = data.content?.[0]?.text || '{}';
+    const raw = data.choices?.[0]?.message?.content || '{}';
     const match = raw.match(/\{[\s\S]*\}/);
     const parsed = match ? JSON.parse(match[0]) : { memories: [] };
 
