@@ -996,7 +996,7 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
   <!-- 요약 카드 -->
   <div class="grid3" style="margin-bottom:16px">
     <div class="card" style="background:var(--blueL);box-shadow:none">
-      <div class="small muted">전체 누적 비용 (OpenAI)</div>
+      <div class="small muted">전체 누적 비용</div>
       <b id="apiTotalKrw" style="font-size:22px;color:var(--blue)">₩—</b>
       <div class="small muted" id="apiTotalUsd">$—</div>
     </div>
@@ -1006,9 +1006,9 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
       <div class="small muted">tokens</div>
     </div>
     <div class="card" style="background:var(--yellowL);box-shadow:none">
-      <div class="small muted">환율 (USD/KRW)</div>
-      <b id="apiRate" style="font-size:22px;color:#b45309">₩—</b>
-      <div class="small muted" id="apiOpenaiUsd" style="display:none">$—</div>
+      <div class="small muted">이번달 비용</div>
+      <b id="apiMonthKrw" style="font-size:22px;color:#b45309">₩—</b>
+      <div class="small muted" id="apiMonthUsd">$—</div>
     </div>
   </div>
 
@@ -1031,11 +1031,11 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
       </table>
     </div>
     <div class="card" style="margin-top:14px">
-      <h2 style="margin-bottom:12px">직원별 완료 업무 수</h2>
+      <h2 style="margin-bottom:12px">직원별 토큰 사용량</h2>
       <table style="table-layout:fixed">
-        <colgroup><col style="width:50%"><col style="width:50%"></colgroup>
-        <thead><tr><th>직원</th><th>완료 업무</th></tr></thead>
-        <tbody id="apiEmployeeBody"><tr><td colspan="2" class="empty">데이터 없음</td></tr></tbody>
+        <colgroup><col style="width:40%"><col style="width:30%"><col style="width:30%"></colgroup>
+        <thead><tr><th>직원</th><th>토큰 (T)</th><th>완료 업무</th></tr></thead>
+        <tbody id="apiEmployeeBody"><tr><td colspan="3" class="empty">데이터 없음</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -1286,7 +1286,7 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
     <h1>포스터 메이커</h1>
     <div class="row" style="gap:10px;align-items:center">
       <span class="small muted">이 세션 API 비용: <b id="toolToken_poster">₩0</b></span>
-      <span class="badge b-green" style="font-size:11px">Claude claude-opus-4-8 + Canva</span>
+      <span class="badge b-green" style="font-size:11px">GPT-4o + Canva</span>
     </div>
   </div>
 
@@ -1380,7 +1380,7 @@ Canva가 포스터 후보를 생성합니다.
 <section class="view" id="naver-blog" data-screen-label="네이버 블로그 툴">
   <div class="header">
     <h1>네이버 블로그 툴</h1>
-    <span class="badge b-green" style="font-size:11px">Claude claude-opus-4-8 · SEO 자동화</span>
+    <span class="badge b-green" style="font-size:11px">GPT-4o · SEO 자동화</span>
   </div>
 
   <div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border)">
@@ -1546,7 +1546,7 @@ Canva가 포스터 후보를 생성합니다.
     <h1>스레드 자동화</h1>
     <div class="row" style="gap:8px;align-items:center">
       <span class="small muted">이 세션 API 비용: <b id="toolToken_threads">₩0</b></span>
-      <span class="badge b-green" style="font-size:11px">Claude claude-opus-4-8 · 쿠팡파트너스</span>
+      <span class="badge b-green" style="font-size:11px">GPT-4o · 쿠팡파트너스</span>
     </div>
   </div>
 
@@ -1752,7 +1752,7 @@ Canva가 포스터 후보를 생성합니다.
 <section class="view" id="xiaohongshu" data-screen-label="샤오홍슈 대본">
   <div class="header">
     <h1>샤오홍슈 대본 메이커</h1>
-    <span class="badge b-green" style="font-size:11px">Claude claude-opus-4-8 · 중국어 번역</span>
+    <span class="badge b-green" style="font-size:11px">GPT-4o · 중국어 번역</span>
   </div>
 
   <div class="card" style="background:linear-gradient(135deg,#ff2442,#ff6b6b);color:#fff;border:none;margin-bottom:16px">
@@ -1830,7 +1830,7 @@ Canva가 포스터 후보를 생성합니다.
 <section class="view" id="suno" data-screen-label="Suno 프롬프트 도우미">
   <div class="header">
     <h1>Suno 프롬프트 도우미</h1>
-    <span class="badge b-green" style="font-size:11px">Claude claude-opus-4-8 · AI 작사작곡</span>
+    <span class="badge b-green" style="font-size:11px">GPT-4o · AI 작사작곡</span>
   </div>
 
   <div class="grid2" style="align-items:start;gap:14px">
@@ -1947,7 +1947,7 @@ Canva가 포스터 후보를 생성합니다.
     <h1>카드뉴스 메이커</h1>
     <div class="row" style="gap:10px;align-items:center">
       <span class="small muted">이 세션 API 비용: <b id="toolToken_cardnews">₩0</b></span>
-      <span class="badge b-green" style="font-size:11px">Claude claude-opus-4-8 · 10장 1080×1350</span>
+      <span class="badge b-green" style="font-size:11px">GPT-4o · 10장 1080×1350</span>
     </div>
   </div>
 
@@ -2070,7 +2070,7 @@ Canva가 포스터 후보를 생성합니다.
           <div style="text-align:center;color:var(--sub);padding:24px">
             <div style="font-size:36px;margin-bottom:10px">🃏</div>
             <div class="small" style="font-weight:600">주제를 입력하고 생성하세요</div>
-            <div class="small muted" style="margin-top:4px">Claude claude-opus-4-8가 10장을 자동 제작합니다</div>
+            <div class="small muted" style="margin-top:4px">GPT-4o가 10장을 자동 제작합니다</div>
           </div>
         </div>
       </div>
@@ -2214,6 +2214,7 @@ async function initConfig(){
     const base=d.supabase_url.replace(/\/rest\/v1\/?$/,'');
     SUPABASE_REST_URL=base+'/rest/v1';
     SUPABASE_ANON_KEY=d.supabase_anon_key;
+    if(d.openai_api_key)window._oaiKey=d.openai_api_key;
   }catch(e){
     SUPABASE_REST_URL='https://lkcmgritsfjgvqsldqmc.supabase.co/rest/v1';
     SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrY21ncml0c2ZqZ3Zxc2xkcW1jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTA3MzcsImV4cCI6MjA5NDQyNjczN30.x8v1q8-nCaRRtEJT-9GBoYl34R_KL0wB-UVmBJx_D9Q';
@@ -2302,7 +2303,7 @@ async function doLogin(ev){
 
   try{
     const resp=await fetch('/api/login',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({id,pw})
     });
     const data=await resp.json();
@@ -2607,7 +2608,7 @@ async function callAgent(emp,userText){
   }
   try{
     const res=await fetch('/api/agent',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({employee:emp,message:userText})
     });
     if(!res.ok)throw new Error(await res.text());
@@ -2862,7 +2863,7 @@ async function deleteSop(id){if(!confirm('이 절차를 삭제할까요?'))retur
 /* ============ 대표관리: weekly / calendar / year checklist ============ */
 let weeklyDragId=null;
 async function loadWeeklyTodos(){
- let rows=[];try{rows=await sb('/weekly_todos?select=*&order=sort_order.asc,created_at.asc')}catch(e){}
+ let rows=[];try{rows=await sb('/weekly_todos?select=*&order=created_at.asc')}catch(e){}
  const body=document.getElementById('weeklyTodoBody');
  if(!rows.length){body.innerHTML='<div class="empty">등록된 할일이 없습니다</div>';return;}
  body.innerHTML=rows.map(t=>`<div class="check-item ${t.is_done?'done':''}" draggable="true" data-id="${t.id}"
@@ -2887,7 +2888,7 @@ async function weeklyDrop(event,targetId){
  const fromIdx=items.indexOf(weeklyDragId);
  const toIdx=items.indexOf(targetId);
  items.splice(fromIdx,1);items.splice(toIdx,0,weeklyDragId);
- try{await Promise.all(items.map((id,i)=>sb('/weekly_todos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({sort_order:i})})));}catch(e){}
+ try{await Promise.all(items.map((id,i)=>sb('/weekly_todos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({sort_order:i})})));}catch(e){/* sort_order 컬럼 없어도 UI는 유지 */}
  await loadWeeklyTodos();
 }
 async function saveWeeklyTodo(){const i=document.getElementById('weeklyTodoTitle');if(!i.value.trim())return alert('할일을 입력하세요');try{await sb('/weekly_todos',{method:'POST',body:JSON.stringify([{title:i.value,is_done:false}])});i.value='';closeModal('weeklyTodoModal');await loadWeeklyTodos();await log('대표관리','이번주 할일 추가')}catch(e){alert(e.message)}}
@@ -3374,7 +3375,7 @@ async function generateReport(){
   try{outputs=await sb('/outputs?select=*&order=created_at.desc');}catch(e){}
   try{projects=await sb('/projects?select=*');}catch(e){}
   try{
-    const resp=await fetch('/api/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({period,tasks,outputs,projects,director:director?.name||'총괄이사'})});
+    const resp=await fetch('/api/report',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},body:JSON.stringify({period,tasks,outputs,projects,director:director?.name||'총괄이사'})});
     if(!resp.ok)throw new Error('API '+resp.status);
     const data=await resp.json();
     statusEl.textContent=`✅ ${data.title||'보고서'} 생성 완료`;statusEl.style.color='var(--green)';
@@ -3399,13 +3400,13 @@ async function loadTodayReports(){
 async function sendTelegramNow(){
   const msg=document.getElementById('tgRawMessage')?.textContent;
   if(!msg||msg==='—')return alert('먼저 브리핑을 생성해주세요.');
-  try{await fetch('/api/telegram',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});alert('텔레그램으로 발송했습니다.');}
+  try{await fetch('/api/telegram',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},body:JSON.stringify({message:msg})});alert('텔레그램으로 발송했습니다.');}
   catch(e){alert('발송 실패: '+e.message);}
 }
 async function sendCooReport(type){
   const label={daily:'일일',weekly:'주간',risk:'리스크'}[type]||type;
   try{
-    const res=await fetch('/api/coo-report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type})});
+    const res=await fetch('/api/coo-report',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},body:JSON.stringify({type})});
     if(!res.ok)throw new Error(await res.text());
     alert(`✅ 총괄이사 ${label} 보고를 텔레그램으로 발송했습니다.`);
   }catch(e){alert('발송 실패: '+e.message);}
@@ -3440,7 +3441,7 @@ async function refreshBriefing(){
  // 브리핑 API 호출 (AI 요약 + 우선순위 + 텔레그램용 메시지)
  try{
    const weatherData={jeonju:window._weather_jeonju||{},seoul:window._weather_seoul||{}};
-   const resp=await fetch('/api/briefing',{method:'POST',headers:{'Content-Type':'application/json'},
+   const resp=await fetch('/api/briefing',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
      body:JSON.stringify({schedules,tasks:activeTasks.slice(0,5),approvals:approvalCount,
        weather:weatherData,news:news.slice(0,3),projects:projects.slice(0,4),delayed,newTasks})});
    if(!resp.ok)throw new Error('API '+resp.status);
@@ -3461,7 +3462,7 @@ async function refreshBriefing(){
    if(!localStorage.getItem(tgKey)&&data.telegram_message){
      if(hour>=7&&hour<9){
        try{
-         await fetch('/api/telegram',{method:'POST',headers:{'Content-Type':'application/json'},
+         await fetch('/api/telegram',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
            body:JSON.stringify({message:data.telegram_message})});
          localStorage.setItem(tgKey,'1');
          if(tgTimeEl)tgTimeEl.textContent=`오늘 아침 ${now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})} 발송됨`;
@@ -3655,7 +3656,7 @@ async function discoverRocketProducts(){
   statusEl.textContent='⏳ AI 상품 발굴 중...';
   listEl.innerHTML='<div class="empty">분석 중...</div>';
   try{
-    const resp=await fetch('/api/agent',{method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('/api/agent',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({employee:{id:'rocket',name:'로켓그로스 AI',position:'MD'},
         message:`쿠팡 로켓그로스에 적합한 상품을 발굴해줘.
 조건:
@@ -3699,7 +3700,7 @@ async function analyzeRocketKeywords(){
   if(!input){alert('키워드를 입력하세요');return;}
   statusEl.textContent='⏳ 분석 중...';
   try{
-    const resp=await fetch('/api/agent',{method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('/api/agent',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({employee:{id:'rocket',name:'로켓그로스 AI',position:'MD'},
         message:`쿠팡 로켓그로스 "${input}" 키워드를 분석해줘. 목적: ${purpose}
 
@@ -3732,7 +3733,7 @@ async function generateRocketContent(){
   if(!name){alert('상품명을 입력하세요');return;}
   statusEl.textContent='⏳ 본문 생성 중...';
   try{
-    const resp=await fetch('/api/agent',{method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('/api/agent',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({employee:{id:'rocket',name:'로켓그로스 AI',position:'MD'},
         message:`쿠팡 로켓그로스 상품 상세페이지 본문을 작성해줘.
 상품명: ${name}
@@ -4052,7 +4053,20 @@ async function loadApiManager(){
   document.getElementById('apiTotalKrw').textContent='₩'+totalKrw.toLocaleString();
   document.getElementById('apiTotalUsd').textContent='$'+totalUsd;
   document.getElementById('apiTotalTokens').textContent=totalTokens.toLocaleString();
-  document.getElementById('apiRate').textContent='₩'+USD_KRW.toLocaleString();
+  // 이번달 비용 = 전체 누적의 이번달 생성 프로젝트 토큰 (token_updated_at 없으므로 전체의 1/12 근사 대신 messages 테이블 활용)
+  try{
+    const thisMonth=new Date().toISOString().slice(0,7);
+    const msgs=await sb('/messages?select=created_at&created_at=gte.'+thisMonth+'-01&limit=1000');
+    // 메시지 1건당 평균 500토큰 추정 (실제 토큰 컬럼 없으므로)
+    const monthTokenEst=msgs.length*500;
+    const monthKrw=tokenToKrw(monthTokenEst);
+    const monthUsd=(monthTokenEst*0.00001).toFixed(2);
+    document.getElementById('apiMonthKrw').textContent='₩'+monthKrw.toLocaleString();
+    document.getElementById('apiMonthUsd').textContent='$'+monthUsd+'(추정)';
+  }catch(e){
+    document.getElementById('apiMonthKrw').textContent='₩0';
+    document.getElementById('apiMonthUsd').textContent='$0';
+  }
   const secApi=document.getElementById('secApi');
   if(secApi)secApi.textContent='₩'+totalKrw.toLocaleString()+' ($'+totalUsd+')';
   const homeApi=document.getElementById('homeApi');
@@ -4073,17 +4087,22 @@ async function loadApiManager(){
   // 2. 전체 탭 - 프로젝트별
   projRows(projects,'apiProjectBody',3);
 
-  // 3. 전체 탭 - 직원별 완료 업무
+  // 3. 전체 탭 - 직원별 토큰 + 완료 업무
   try{
-    const tasks=await sb('/tasks?select=assigned_employee_name,created_at&status=eq.완료&limit=500');
+    const [emps, tasks] = await Promise.all([
+      sb('/employees?select=name,token_usage&limit=20').catch(()=>[]),
+      sb('/tasks?select=assigned_employee_name,created_at&status=eq.완료&limit=500').catch(()=>[])
+    ]);
     const empCount={};
     tasks.forEach(t=>{if(t.assigned_employee_name)empCount[t.assigned_employee_name]=(empCount[t.assigned_employee_name]||0)+1;});
     const empBody=document.getElementById('apiEmployeeBody');
     if(empBody){
-      const sorted=Object.entries(empCount).sort((a,b)=>b[1]-a[1]);
-      empBody.innerHTML=sorted.length?sorted.map(([name,cnt])=>
-        `<tr><td class="small" style="font-weight:600">${esc(name)}</td><td class="small">${cnt}건</td></tr>`
-      ).join(''):'<tr><td colspan="2" class="empty">데이터 없음</td></tr>';
+      const sorted=emps.sort((a,b)=>parseT(b.token_usage)-parseT(a.token_usage));
+      empBody.innerHTML=sorted.length?sorted.map(e=>{
+        const t=parseT(e.token_usage);
+        const cnt=empCount[e.name]||0;
+        return `<tr><td class="small" style="font-weight:600">${esc(e.name)}</td><td class="small">${t>0?t.toLocaleString()+' T':'-'}</td><td class="small">${cnt}건</td></tr>`;
+      }).join(''):'<tr><td colspan="3" class="empty">데이터 없음</td></tr>';
     }
 
     // 4. 일별 탭
@@ -4101,8 +4120,8 @@ async function loadApiManager(){
     if(weekEmpBody){const s=Object.entries(weekEmp).sort((a,b)=>b[1]-a[1]);weekEmpBody.innerHTML=s.length?s.map(([n,c])=>`<tr><td class="small" style="font-weight:600">${esc(n)}</td><td class="small">${c}건</td></tr>`).join(''):'<tr><td colspan="2" class="empty">이번주 데이터 없음</td></tr>';}
 
     // 6. 월별 탭
-    const thisMonth=new Date().toISOString().slice(0,7);
-    const monthTasks=tasks.filter(t=>t.created_at&&t.created_at.slice(0,7)===thisMonth);
+    const thisMonth2=new Date().toISOString().slice(0,7);
+    const monthTasks=tasks.filter(t=>t.created_at&&t.created_at.slice(0,7)===thisMonth2);
     const monthEmp={};monthTasks.forEach(t=>{if(t.assigned_employee_name)monthEmp[t.assigned_employee_name]=(monthEmp[t.assigned_employee_name]||0)+1;});
     const monthEmpBody=document.getElementById('apiMonthEmpBody');
     if(monthEmpBody){const s=Object.entries(monthEmp).sort((a,b)=>b[1]-a[1]);monthEmpBody.innerHTML=s.length?s.map(([n,c])=>`<tr><td class="small" style="font-weight:600">${esc(n)}</td><td class="small">${c}건</td></tr>`).join(''):'<tr><td colspan="2" class="empty">이번달 데이터 없음</td></tr>';}
@@ -4177,23 +4196,22 @@ async function sendBotChat(){
 
     const systemPrompt=`${emp.prompt||'당신은 Rolling Stone Design 직원입니다.'}\n\n[공통 지침]\n대표님께 깍듯이. 결론 먼저. 두괄식. 거짓말 금지. 맞춤법 철저. 10년 베테랑.\n\n${ctx}`;
 
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+    const res=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
-        model:'claude-opus-4-8',max_tokens:800,
-        system:systemPrompt,
-        messages:botChatHistory.slice(-16)
+        model:'gpt-4o',max_tokens:800,
+        messages:[{role:'system',content:systemPrompt},...botChatHistory.slice(-16)]
       })
     });
     if(!res.ok)throw new Error(await res.text());
     const data=await res.json();
-    const reply=data.content?.[0]?.text||'처리 중 오류가 발생했습니다.';
+    const reply=data.choices?.[0]?.message?.content||'처리 중 오류가 발생했습니다.';
 
     botChatHistory.push({role:'assistant',content:reply});
 
     // 토큰 비용
-    const inp2=data.usage?.input_tokens||0;
-    const out2=data.usage?.output_tokens||0;
+    const inp2=data.usage?.prompt_tokens||0;
+    const out2=data.usage?.completion_tokens||0;
     const cost=Math.round((inp2*0.000015+out2*0.000075)*1380);
     botTotalCost+=cost;
     document.getElementById('botChatCost').textContent=`비용: ₩${botTotalCost.toLocaleString()}`;
@@ -4431,7 +4449,7 @@ async function generateSubtitles(){
 
     // Claude API로 샘플 자막 생성 (실제 Whisper 연동 전 데모)
     const resp=await fetch('/api/briefing',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
         schedules:[],tasks:[],approvals:0,
         _override_prompt:`당신은 영상 자막 생성 전문가입니다.
@@ -4466,7 +4484,7 @@ async function generateHook(){
   const btn=event.target;btn.textContent='⏳ 생성 중...';btn.disabled=true;
   try{
     const resp=await fetch('/api/briefing',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
         schedules:[],tasks:[],approvals:0,
         _override_prompt:`쇼츠/릴스용 훅 문구를 만들어주세요.
@@ -4514,7 +4532,7 @@ async function exportShorts(){
 
 /* ============ Tool 토큰 비용 실시간 표시 ============ */
 const CN_BRAND_KEY='rs_cn_brand';
-// Claude claude-opus-4-8 기준 토큰 단가 (달러)
+// GPT-4o 기준 토큰 단가 (달러)
 const TOKEN_PRICE_IN=0.000015;   // $15/1M input tokens
 const TOKEN_PRICE_OUT=0.000075;  // $75/1M output tokens
 const USD_KRW=1380;
@@ -4593,11 +4611,10 @@ async function generateVlogPlan(){
   const lengthMap={short:'5~10분',medium:'10~20분',long:'20분 이상'};
   const channelMap={youtube:'유튜브',insta:'인스타그램',both:'유튜브+인스타 동시'};
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
-        model:'claude-opus-4-8',max_tokens:2000,
-        system:`당신은 유튜브/인스타 브이로그 기획 전문가입니다. 
+        model:'gpt-4o',max_tokens:2000,
 시청자를 끝까지 붙잡는 브이로그 구성을 만들어주세요.
 - 썸네일 제목 3개 (클릭률 높게)
 - 오프닝 훅 (첫 15초)
@@ -4606,11 +4623,11 @@ async function generateVlogPlan(){
 - 업로드 최적 시간대
 - 해시태그 10개
 한국어로 답변하세요.`,
-        messages:[{role:'user',content:`주제: ${topic}\n스타일: ${styleMap[style]}\n영상 길이: ${lengthMap[length]}\n채널: ${channelMap[channel]}\n\n위 내용으로 브이로그 기획안을 작성해줘.`}]
+        messages:[{role:'system',content:`당신은 유튜브/인스타 브이로그 기획 전문가입니다.},...({role:'user',content:`주제: ${topic}\n스타일: ${styleMap[style]}\n영상 길이: ${lengthMap[length]}\n채널: ${channelMap[channel]}\n\n위 내용으로 브이로그 기획안을 작성해줘.`})],
       })
     });
     const data=await resp.json();
-    const result=data.content?.[0]?.text||'생성 실패';
+    const result=data.choices?.[0]?.message?.content||'생성 실패';
     document.getElementById('vlogResult').innerHTML=`<div style="white-space:pre-wrap;font-size:13px;line-height:1.8">${esc(result)}</div>`;
     statusEl.textContent='✅ 완료';
   }catch(e){statusEl.textContent='❌ 실패: '+e.message;}
@@ -4644,16 +4661,15 @@ async function runReelsAudit(){
   statusEl.textContent='⏳ 계정 감사 중...';
   const input=manualData?`계정: ${handle}\n\n릴스 데이터:\n${manualData}`:`계정: ${handle}\n\nWindsor.ai 연동 데이터를 기반으로 분석해주세요. (직접 연결 필요)`;
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
-        model:'claude-opus-4-8',max_tokens:3000,
-        system:REELS_AUDIT_PROMPT,
-        messages:[{role:'user',content:input}]
+        model:'gpt-4o',max_tokens:3000,
+        messages:[{role:'system',content:REELS_AUDIT_PROMPT},...({role:'user',content:input})]
       })
     });
     const data=await resp.json();
-    const result=data.content?.[0]?.text||'분석 실패';
+    const result=data.choices?.[0]?.message?.content||'분석 실패';
     document.getElementById('reelsAuditResult').innerHTML=`<div style="white-space:pre-wrap;font-size:12px;line-height:1.8">${esc(result)}</div>`;
     statusEl.textContent='✅ 완료 — 스크립트 탭으로 이어서 진행하세요';
   }catch(e){statusEl.textContent='❌ 실패: '+e.message;}
@@ -4684,16 +4700,15 @@ async function generateReelsScript(){
   const statusEl=document.getElementById('reelsScriptStatus');
   statusEl.textContent='⏳ 스크립트 생성 중...';
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
-        model:'claude-opus-4-8',max_tokens:3000,
-        system:REELS_SCRIPT_SYSTEM,
-        messages:[{role:'user',content:`계정: ${handle||'내 계정'}\n타깃 오디언스: ${audience}\n\n계정 분석 결과를 바탕으로 30~55초 릴스 스크립트 3개를 한국어로 작성해줘. 최소 1개는 개인적이고 취약한 내용을 담아줘.`}]
+        model:'gpt-4o',max_tokens:3000,
+        messages:[{role:'system',content:REELS_SCRIPT_SYSTEM},...({role:'user',content:`계정: ${handle||'내 계정'}\n타깃 오디언스: ${audience}\n\n계정 분석 결과를 바탕으로 30~55초 릴스 스크립트 3개를 한국어로 작성해줘. 최소 1개는 개인적이고 취약한 내용을 담아줘.`})]
       })
     });
     const data=await resp.json();
-    const result=data.content?.[0]?.text||'생성 실패';
+    const result=data.choices?.[0]?.message?.content||'생성 실패';
     document.getElementById('reelsScriptResult').style.display='block';
     document.getElementById('reelsScriptContent').textContent=result;
     statusEl.textContent='✅ 완료';
@@ -4712,16 +4727,15 @@ async function generateContentCalendar(){
   const ctx=(document.getElementById('calendarContext').value||'').trim();
   if(!ctx)return alert('계정 정보를 입력하세요');
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
-        model:'claude-opus-4-8',max_tokens:2000,
-        system:'당신은 Instagram 콘텐츠 전략가입니다. 7일 콘텐츠 캘린더를 한국어 표 형식으로 작성하세요. 각 날짜별: 포맷(릴스/캐러셀/스토리), 콘텐츠 필러, 훅 한 줄, 전략적 이유.',
-        messages:[{role:'user',content:`계정 정보: ${ctx}\n\n감사 결과를 바탕으로 7일 인스타그램 콘텐츠 캘린더를 만들어줘. 강점을 살리고 blind spot을 보완하는 방향으로.`}]
+        model:'gpt-4o',max_tokens:2000,
+        messages:[{role:'system',content:'당신은 Instagram 콘텐츠 전략가입니다. 7일 콘텐츠 캘린더를 한국어 표 형식으로 작성하세요. 각 날짜별: 포맷(릴스/캐러셀/스토리), 콘텐츠 필러, 훅 한 줄, 전략적 이유.'},...({role:'user',content:`계정 정보: ${ctx}\n\n감사 결과를 바탕으로 7일 인스타그램 콘텐츠 캘린더를 만들어줘. 강점을 살리고 blind spot을 보완하는 방향으로.`})],
       })
     });
     const data=await resp.json();
-    const result=data.content?.[0]?.text||'생성 실패';
+    const result=data.choices?.[0]?.message?.content||'생성 실패';
     document.getElementById('calendarResult').style.display='block';
     document.getElementById('calendarContent').innerHTML=`<div style="white-space:pre-wrap;font-size:12px;line-height:1.8">${esc(result)}</div>`;
   }catch(e){alert('실패: '+e.message);}
@@ -4732,16 +4746,15 @@ async function rewriteHook(){
   const hook=(document.getElementById('hookInput').value||'').trim();
   if(!hook)return alert('훅을 입력하세요');
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
-        model:'claude-opus-4-8',max_tokens:1000,
-        system:'인스타그램 바이럴 훅 전문가입니다. 주어진 훅을 5가지 공식으로 다시 써주세요: 호기심 갭, 대담한 주장, 직접 질문, 숫자+고백, "아무도 말 안 하는". 각 12단어 이하. 가장 추천하는 것과 이유도 알려주세요. 한국어로.',
-        messages:[{role:'user',content:`원래 훅: ${hook}\n\n5가지 바이럴 훅으로 다시 써줘.`}]
+        model:'gpt-4o',max_tokens:1000,
+        messages:[{role:'system',content:'인스타그램 바이럴 훅 전문가입니다. 주어진 훅을 5가지 공식으로 다시 써주세요: 호기심 갭, 대담한 주장, 직접 질문, 숫자+고백, "아무도 말 안 하는". 각 12단어 이하. 가장 추천하는 것과 이유도 알려주세요. 한국어로.'},...({role:'user',content:`원래 훅: ${hook}\n\n5가지 바이럴 훅으로 다시 써줘.`})],
       })
     });
     const data=await resp.json();
-    const result=data.content?.[0]?.text||'생성 실패';
+    const result=data.choices?.[0]?.message?.content||'생성 실패';
     document.getElementById('hookResult').style.display='block';
     document.getElementById('hookContent').innerHTML=`<div style="white-space:pre-wrap;font-size:13px;line-height:1.8">${esc(result)}</div>`;
   }catch(e){alert('실패: '+e.message);}
@@ -4753,16 +4766,15 @@ async function generateCaption(){
   const keyword=(document.getElementById('captionKeyword').value||'').trim();
   if(!desc)return alert('릴스 내용을 입력하세요');
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
-        model:'claude-opus-4-8',max_tokens:1000,
-        system:'인스타그램 캡션 전문가입니다. 짧고 임팩트 있는 한국어 캡션 3개를 작성하세요. 댓글 유도 CTA로 시작하고, 자연스러운 말투를 유지하세요.',
-        messages:[{role:'user',content:`릴스 내용: ${desc}\n댓글 키워드: ${keyword||'없음'}\n\n캡션 3개 써줘.`}]
+        model:'gpt-4o',max_tokens:1000,
+        messages:[{role:'system',content:'인스타그램 캡션 전문가입니다. 짧고 임팩트 있는 한국어 캡션 3개를 작성하세요. 댓글 유도 CTA로 시작하고, 자연스러운 말투를 유지하세요.'},...({role:'user',content:`릴스 내용: ${desc}\n댓글 키워드: ${keyword||'없음'}\n\n캡션 3개 써줘.`})],
       })
     });
     const data=await resp.json();
-    const result=data.content?.[0]?.text||'생성 실패';
+    const result=data.choices?.[0]?.message?.content||'생성 실패';
     document.getElementById('captionResult').style.display='block';
     document.getElementById('captionContent').innerHTML=`<div style="white-space:pre-wrap;font-size:13px;line-height:1.8">${esc(result)}</div>`;
   }catch(e){alert('실패: '+e.message);}
@@ -4806,19 +4818,18 @@ async function generatePosterPrompt(){
   const statusEl=document.getElementById('posterPromptResult');
   statusEl.textContent='⏳ 프롬프트 생성 중...';
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
-        model:'claude-opus-4-8',max_tokens:1500,
-        system:`당신은 Canva 포스터 생성 전문 프롬프트 엔지니어입니다.
+        model:'gpt-4o',max_tokens:1500,
 아래 정보를 바탕으로 Canva에서 사용할 영문 포스터 생성 프롬프트를 작성하세요.
 FORMAT, TYPOGRAPHY, MAIN VISUAL, COLOR, STYLE, FX 섹션을 포함하세요.
 프롬프트만 출력하고 설명은 하지 마세요.`,
-        messages:[{role:'user',content:`용도: ${use}\n비율: ${ratio}\n제목/텍스트: ${title}\n분위기: ${mood}\n컬러: ${colorDesc}\n베이스 템플릿: ${baseTemplate}\n\n위 내용으로 Canva 포스터 생성 프롬프트를 작성해줘.`}]
+        messages:[{role:'system',content:`당신은 Canva 포스터 생성 전문 프롬프트 엔지니어입니다.},...({role:'user',content:`용도: ${use}\n비율: ${ratio}\n제목/텍스트: ${title}\n분위기: ${mood}\n컬러: ${colorDesc}\n베이스 템플릿: ${baseTemplate}\n\n위 내용으로 Canva 포스터 생성 프롬프트를 작성해줘.`})],
       })
     });
     const data=await resp.json();
-    statusEl.textContent=data.content?.[0]?.text||'생성 실패';
+    statusEl.textContent=data.choices?.[0]?.message?.content||'생성 실패';
   }catch(e){statusEl.textContent='❌ 실패: '+e.message;}
 }
 function copyPosterPrompt(){
@@ -4844,16 +4855,15 @@ async function fetchNaverKeywords(){
   const statusEl=document.getElementById('naverKeywordStatus');
   statusEl.textContent='⏳ 키워드 분석 중...';
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
-        model:'claude-opus-4-8',max_tokens:800,
-        system:`당신은 네이버 SEO 전문가입니다. 네이버 실시간 검색어 트렌드와 블로그 SEO를 기반으로 키워드를 추천합니다. JSON 배열만 반환하세요.`,
-        messages:[{role:'user',content:`블로그 주제: ${theme}, 분야: ${cat}\n\n현재 네이버에서 검색량이 많거나 트렌딩 중인 키워드 20개를 추천해줘.\n형식: ["키워드1","키워드2",...] JSON 배열만 반환`}]
+        model:'gpt-4o',max_tokens:800,
+        messages:[{role:'system',content:`당신은 네이버 SEO 전문가입니다. 네이버 실시간 검색어 트렌드와 블로그 SEO를 기반으로 키워드를 추천합니다. JSON 배열만 반환하세요.`},...({role:'user',content:`블로그 주제: ${theme}, 분야: ${cat}\n\n현재 네이버에서 검색량이 많거나 트렌딩 중인 키워드 20개를 추천해줘.\n형식: ["키워드1","키워드2",...)] JSON 배열만 반환`}]
       })
     });
     const data=await resp.json();
-    const text=data.content?.[0]?.text||'[]';
+    const text=data.choices?.[0]?.message?.content||'[]';
     const match=text.match(/\[[\s\S]*\]/);
     naverKeywords=match?JSON.parse(match[0]):[];
     renderNaverKeywords();
@@ -4883,11 +4893,10 @@ async function generateNaverPost(){
   const lenMap={short:'800~1200자',medium:'1500~2000자',long:'2500~3500자'};
   const toneMap={friendly:'친근하고 편안한 말투',professional:'전문적이고 신뢰감 있는 말투',informative:'정보 전달 위주 말투',casual:'가볍고 일상적인 말투'};
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
-        model:'claude-opus-4-8',max_tokens:3000,
-        system:`당신은 네이버 블로그 SEO 전문가이자 콘텐츠 라이터입니다.
+        model:'gpt-4o',max_tokens:3000,
 [핵심 원칙]
 - 인사말(안녕하세요) 절대 금지, 첫 줄에 결론/사건/변화가 있어야 함
 - 결론 먼저 (두괄식), 상단에 정답 박스 (결론 1줄 + 요약 3줄 + 실행 3단계)
@@ -4903,11 +4912,11 @@ async function generateNaverPost(){
 - 메인 키워드 5~7회 자연스럽게
 - 이미지 위치 [이미지: 설명] 형태 표시
 - 마무리: 공감/댓글 유도 CTA`,
-        messages:[{role:'user',content:`메인 키워드: ${kw}\n서브 키워드: ${sub||'없음'}\n말투: ${toneMap[tone]}\n글 길이: ${lenMap[len]}\n\n네이버 블로그 SEO 최적화 글을 작성해줘.`}]
+        messages:[{role:'system',content:`당신은 네이버 블로그 SEO 전문가이자 콘텐츠 라이터입니다.},...({role:'user',content:`메인 키워드: ${kw}\n서브 키워드: ${sub||'없음'}\n말투: ${toneMap[tone]}\n글 길이: ${lenMap[len]}\n\n네이버 블로그 SEO 최적화 글을 작성해줘.`})],
       })
     });
     const data=await resp.json();
-    const result=data.content?.[0]?.text||'생성 실패';
+    const result=data.choices?.[0]?.message?.content||'생성 실패';
     document.getElementById('naverPostResult').textContent=result;
     statusEl.textContent='✅ 완료';
   }catch(e){statusEl.textContent='❌ 실패: '+e.message;}
@@ -4984,22 +4993,21 @@ async function generateCoupangThread(){
   statusEl.textContent='⏳ 스레드 생성 중...';
   const toneMap={casual:'친근하고 솔직하게, 친구에게 추천하는 말투',urgent:'긴급/한정 강조, 빨리 사야 한다는 느낌',review:'실제 사용 후기 스타일, 구체적인 경험담',info:'상품 정보 중심, 핵심 스펙과 장점'};
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
-        model:'claude-opus-4-8',max_tokens:1000,
-        system:`당신은 스레드(Threads) 쿠팡 파트너스 전문 마케터입니다.
+        model:'gpt-4o',max_tokens:1000,
 스레드 게시글 구조:
 [본문] 150자 이내, 훅+상품소개+가격
 [댓글] 구매 링크는 프로필에서 확인 가능 안내 + 광고 표시
 ※ 댓글에 직접 링크 대신 "프로필 링크에서 확인하세요" 문구 사용
 [광고 표시] 반드시 "[광고] 이 포스팅은 쿠팡 파트너스 활동의 일환" 포함
 JSON으로만 반환: {"main":"본문","comment":"댓글","hashtags":["태그1",...]}`,
-        messages:[{role:'user',content:`상품: ${name||'링크 참조'}\n가격: ${price||'미정'}\nURL: ${url}\n말투: ${toneMap[tone]}\n계정: ${account}번\n\n스레드 게시글 생성해줘`}]
+        messages:[{role:'system',content:`당신은 스레드(Threads) 쿠팡 파트너스 전문 마케터입니다.},...({role:'user',content:`상품: ${name||'링크 참조'}\n가격: ${price||'미정'}\nURL: ${url}\n말투: ${toneMap[tone]}\n계정: ${account}번\n\n스레드 게시글 생성해줘`})],
       })
     });
     const data=await resp.json();
-    const text=data.content?.[0]?.text||'{}';
+    const text=data.choices?.[0]?.message?.content||'{}';
     const match=text.match(/\{[\s\S]*\}/);
     const parsed=match?JSON.parse(match[0]):{main:text,comment:'',hashtags:[]};
     currentThreadContent={...parsed,url,account,productName:name||'상품'};
@@ -5034,17 +5042,16 @@ async function generateThread(){
   const account=document.getElementById('threadAccount').value;
   const typeMap={short:'짧은 3~5줄',thread:'본문+댓글 연결형',list:'리스트형 정보 나열',story:'스토리형 경험담'};
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
-        model:'claude-opus-4-8',max_tokens:600,
-        system:`당신은 스레드 전문 작가입니다. ${tags?`학습 태그: ${tags}`:''}
+        model:'gpt-4o',max_tokens:600,
 JSON으로만 반환: {"main":"본문","comment":"댓글(선택)","hashtags":["태그"]}`,
-        messages:[{role:'user',content:`주제: ${topic}\n유형: ${typeMap[type]}\n\n스레드 글 작성해줘`}]
+        messages:[{role:'system',content:`당신은 스레드 전문 작가입니다. ${tags?`학습 태그: ${tags}`:''}},...({role:'user',content:`주제: ${topic}\n유형: ${typeMap[type]}\n\n스레드 글 작성해줘`})],
       })
     });
     const data=await resp.json();
-    const text=data.content?.[0]?.text||'{}';
+    const text=data.choices?.[0]?.message?.content||'{}';
     const match=text.match(/\{[\s\S]*\}/);
     const parsed=match?JSON.parse(match[0]):{main:text};
     currentThreadContent={...parsed,account,type:'general'};
@@ -5112,19 +5119,18 @@ async function generateXhsScript(){
   const catMap={fashion:'패션/스타일',beauty:'뷰티/스킨케어',food:'음식/맛집',travel:'여행/라이프스타일',fitness:'운동/건강',daily:'일상/감성',study:'공부/자기계발'};
   const moodMap={cute:'귀엽고 발랄한 (可爱风)',aesthetic:'감성적이고 시적인 (文艺风)',informative:'정보 전달형 (干货)',funny:'유머러스한 (搞笑)',luxury:'럭셔리/고급스러운 (精致风)'};
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({
-        model:'claude-opus-4-8',max_tokens:1500,
-        system:`당신은 샤오홍슈(小红书) 전문 콘텐츠 크리에이터입니다.
+        model:'gpt-4o',max_tokens:1500,
 한국어 본문 3개 + 각각의 중국어 번역을 생성하세요.
 JSON으로만 반환:
 {"scripts":[{"korean":"한국어본문","chinese":"中文翻译","hashtags_kr":["태그"],"hashtags_cn":["标签"]},...]}`,
-        messages:[{role:'user',content:`콘텐츠: ${desc}\n카테고리: ${catMap[cat]}\n분위기: ${moodMap[mood]}\n\n샤오홍슈 본문 3개 (한국어+중국어) 생성해줘`}]
+        messages:[{role:'system',content:`당신은 샤오홍슈(小红书) 전문 콘텐츠 크리에이터입니다.},...({role:'user',content:`콘텐츠: ${desc}\n카테고리: ${catMap[cat]}\n분위기: ${moodMap[mood]}\n\n샤오홍슈 본문 3개 (한국어+중국어) 생성해줘`})],
       })
     });
     const data=await resp.json();
-    const text=data.content?.[0]?.text||'{}';
+    const text=data.choices?.[0]?.message?.content||'{}';
     const match=text.match(/\{[\s\S]*\}/);
     const parsed=match?JSON.parse(match[0]):{scripts:[]};
     const scripts=parsed.scripts||[];
@@ -5264,7 +5270,7 @@ async function processMemFile(){
 
     const resp=await fetch('/api/learn',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(window._oaiKey||'')},
       body:JSON.stringify(payload)
     });
 
@@ -5379,11 +5385,11 @@ async function generateSunoPrompts(){
   const bpmStr=bpm||'';
 
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(window._oaiKey||'')},
       body:JSON.stringify({
-        model:'claude-opus-4-8',
+        model:'gpt-4o',
         max_tokens:1500,
         system:`당신은 Suno AI 음악 생성 전문가입니다.
 Suno의 Style of Music 프롬프트를 작성합니다.
@@ -5412,7 +5418,7 @@ JSON만 반환:
     });
 
     const data=await resp.json();
-    const raw=data.content?.[0]?.text||'{}';
+    const raw=data.choices?.[0]?.message?.content||'{}';
     const match=raw.match(/\{[\s\S]*\}/);
     const parsed=match?JSON.parse(match[0]):{prompts:[]};
     sunoPrompts=parsed.prompts||[];
@@ -5526,7 +5532,7 @@ async function generateCardNews(){
   const count=document.getElementById('cnCount')?.value||'10';
   const variant=document.getElementById('cnVariantMode')?.checked||false;
   const statusEl=document.getElementById('cnStatus');
-  statusEl.textContent='⏳ Claude claude-opus-4-8가 카드뉴스를 생성 중...';
+  statusEl.textContent='⏳ GPT-4o가 카드뉴스를 생성 중...';
 
   // 유저 프롬프트 구성 (노션 워크플로우 방식)
   let userPrompt=`주제: ${topic}`;
@@ -5540,14 +5546,13 @@ async function generateCardNews(){
   userPrompt+=`\n\n위 내용으로 한국어 ${count}장 카드뉴스를 JSON 배열로만 반환해줘. 설명 없이 JSON만.`;
 
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(window._oaiKey||'')},
       body:JSON.stringify({
-        model:'claude-opus-4-8',
+        model:'gpt-4o',
         max_tokens:4000,
-        system:CN_SYSTEM_PROMPT,
-        messages:[{role:'user',content:userPrompt}]
+        messages:[{role:'system',content:CN_SYSTEM_PROMPT},{role:'user',content:userPrompt}]
       })
     });
 
@@ -5557,7 +5562,7 @@ async function generateCardNews(){
     }
 
     const data=await resp.json();
-    const raw=data.content?.[0]?.text||'[]';
+    const raw=data.choices?.[0]?.message?.content||'[]';
 
     // JSON 파싱
     let slides=[];
@@ -5680,7 +5685,7 @@ async function checkAutoReport(){
     try{tasks=await sb('/tasks?select=*&order=created_at.desc');}catch(e){}
     try{outputs=await sb('/outputs?select=*&order=created_at.desc');}catch(e){}
     try{projects=await sb('/projects?select=*');}catch(e){}
-    const resp=await fetch('/api/report',{method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('/api/report',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
       body:JSON.stringify({period,tasks,outputs,projects,director:director?.name||'총괄이사'})});
     if(!resp.ok)return;
     const data=await resp.json();

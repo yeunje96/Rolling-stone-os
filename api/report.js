@@ -13,7 +13,8 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'public, max-age=3600');
     return res.status(200).json({
       supabase_url: SB_URL,
-      supabase_anon_key: SB_KEY
+      supabase_anon_key: SB_KEY,
+      openai_api_key: process.env.OPENAI_API_KEY || ''
     });
   }
 
@@ -147,14 +148,21 @@ ${outputs.map(o=>`• ${o.title}`).join('\n') || '없음'}
 }`;
 
   try {
-    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+    const apiRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 1500, messages: [{ role: 'user', content: prompt }] })
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }]
+      })
     });
-    if (!apiRes.ok) throw new Error('Claude API 오류: ' + await apiRes.text());
+    if (!apiRes.ok) throw new Error('OpenAI API 오류: ' + await apiRes.text());
     const data = await apiRes.json();
-    const raw = data.content?.[0]?.text || '{}';
+    const raw = data.choices?.[0]?.message?.content || '{}';
     const match = raw.match(/\{[\s\S]*\}/);
     const parsed = match ? JSON.parse(match[0]) : { full_report: raw };
     return res.status(200).json({ ...parsed, period, generated_at: now2.toISOString() });
