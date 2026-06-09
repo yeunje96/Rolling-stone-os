@@ -419,14 +419,6 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
       <div class="card metric"><p>이번달 API 비용</p><strong id="secApi">—</strong></div>
     </div>
     <div class="card">
-      <h2 style="font-size:14px">✅ 승인 필요 업무</h2>
-      <div id="kpiApprovalList"><div class="empty">승인 대기 항목이 없습니다</div></div>
-    </div>
-    <div class="card">
-      <h2 style="font-size:14px">🚨 긴급 승인</h2>
-      <div id="kpiUrgentList"><div class="empty">긴급 승인 항목이 없습니다</div></div>
-    </div>
-    <div class="card">
       <h2 style="font-size:14px;color:var(--yellow)">👤 미응답 직원</h2>
       <div id="riskNoReply"><div class="empty">확인 필요 직원이 없습니다</div></div>
     </div>
@@ -546,7 +538,7 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
       <span class="small muted">행을 더블클릭하면 수정 · 상태 배지를 클릭하면 단계가 바뀝니다</span>
       <button class="btn sm" onclick="loadProjects()">새로고침</button>
     </div>
-    <table><thead><tr><th>프로젝트</th><th>부서</th><th>상태</th><th>누적 토큰</th><th>기록 <span class="small muted" style="font-weight:400">▾ 클릭</span></th><th style="width:60px">관리</th></tr></thead><tbody id="projectBody"><tr><td colspan="6" class="empty">등록된 프로젝트가 없습니다</td></tr></tbody></table>
+    <table><thead><tr><th>프로젝트</th><th>부서</th><th>상태</th><th>누적 토큰</th><th style="width:60px">관리</th></tr></thead><tbody id="projectBody"><tr><td colspan="5" class="empty">등록된 프로젝트가 없습니다</td></tr></tbody></table>
   </div>
 </section>
 
@@ -1916,22 +1908,8 @@ function applyLoginState(){
       if(autoEl)autoEl.checked=true;
     }
   } else {
-    // 로그인 상태 — config 로드 후 전체 데이터 초기화
-    initConfig().then(()=>{
-      // 공통 데이터 로드
-      loadEmployees();
-      loadTasks();
-      loadProjects();
-      loadRevenue();
-      loadWeeklyTodos();
-      loadCkYear().then(()=>loadYearChecklist());
-      loadCalendar();
-      loadSchedule();
-      loadApiCost();
-      loadSops();
-      // 홈 화면 표시
-      show('dashboard');
-    });
+    // 로그인 상태 — initApp으로 전체 데이터 초기화 후 홈 표시
+    initApp().then(()=>show('dashboard'));
   }
 }
 function toggleSaveId(){
@@ -2002,7 +1980,24 @@ function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&l
 function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>show(b.dataset.view));
-function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.nav').forEach(b=>b.classList.remove('active'));document.getElementById(id)?.classList.add('active');const n=document.querySelector(`[data-view="${id}"]`);if(n)n.classList.add('active');window.scrollTo(0,0);if(id==='sysadmin')loadSysAdmin();if(id==='apimanager')loadApiManager();}
+function show(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+  const n=document.querySelector(`[data-view="${id}"]`);if(n)n.classList.add('active');
+  window.scrollTo(0,0);
+  // 탭별 데이터 로드
+  if(id==='dashboard'){loadRevenue();loadApiCost();}
+  if(id==='tasks'){loadMessenger();loadTasks();}
+  if(id==='projects')loadProjects();
+  if(id==='employees')loadEmployees();
+  if(id==='outputs')loadOutputs();
+  if(id==='sop')loadSops();
+  if(id==='ceo'){loadWeeklyTodos();loadCkYear().then(()=>loadYearChecklist());loadCalendar();}
+  if(id==='secretary')loadSchedule();
+  if(id==='sysadmin')loadSysAdmin();
+  if(id==='apimanager')loadApiManager();
+}
 function badge(s){
   const val=(s&&!/^[ㄱ-ㅎㅏ-ㅣ]$/.test(s.trim())&&s.trim().length>0)?s.trim():'대기';
   // 시스템 관리에서 설정한 색상 우선 참조
@@ -2372,22 +2367,16 @@ async function loadProjects(){
  const parseToken=v=>{const n=parseInt(String(v||'0').replace(/[^0-9]/g,''))||0;return n;};
  let rows=[];try{rows=await sb('/projects?select=*&order=created_at.desc')}catch(e){}
  document.getElementById('projectBody').innerHTML=rows.length?rows.map(p=>{
-   // 기록 드롭다운
-   const logs=p.latest_log?[{text:p.latest_log,ts:p.updated_at||''}]:[];
-   const logHtml=logs.length
-     ?`<span class="small muted">${esc(logs[0].text||'—').slice(0,30)}</span>`
-     :`<span class="small muted">—</span>`;
    const projStatuses=getSysStatuses('proj');
    const curColor=(projStatuses.find(s=>s.val===p.status)||{}).color||'b-gray';
-   return `<tr class="row-click" ondblclick='openProjectModalById("${p.id}")'><td><b>${esc(p.name)}</b>${p.description?`<div class="small muted" style="margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" title="${esc(p.description)}">${esc(p.description.slice(0,30)+(p.description.length>30?'…':''))}</div>`:''}</td><td>${deptTags(p.departments)}</td><td onclick="event.stopPropagation()" style="min-width:120px"><select class="status-select ${curColor}" onchange="changeProjectStatus('${p.id}',this.value)" style="appearance:none;-webkit-appearance:none;border:none;outline:none;cursor:pointer;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;min-width:80px;text-align:center">${projStatuses.map(s=>`<option value="${esc(s.val)}" ${p.status===s.val?'selected':''}>${esc(s.val)}</option>`).join('')}</select></td><td class="small" style="font-weight:600">${parseToken(p.token_usage||'0')>0?parseToken(p.token_usage||'0').toLocaleString()+' T':'—'}</td><td>${logHtml}</td><td onclick="event.stopPropagation()"><button class="btn red sm" onclick="deleteProjectById('${p.id}','${esc(p.name)}')">삭제</button></td></tr>`;
+   return `<tr class="row-click" ondblclick='openProjectModalById("${p.id}")'><td><b>${esc(p.name)}</b>${p.description?`<div class="small muted" style="margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" title="${esc(p.description)}">${esc(p.description.slice(0,30)+(p.description.length>30?'…':''))}</div>`:''}</td><td>${deptTags(p.departments)}</td><td onclick="event.stopPropagation()" style="min-width:120px"><select class="status-select ${curColor}" onchange="changeProjectStatus('${p.id}',this.value)" style="appearance:none;-webkit-appearance:none;border:none;outline:none;cursor:pointer;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;min-width:80px;text-align:center">${projStatuses.map(s=>`<option value="${esc(s.val)}" ${p.status===s.val?'selected':''}>${esc(s.val)}</option>`).join('')}</select></td><td class="small" style="font-weight:600">${parseToken(p.token_usage||'0')>0?parseToken(p.token_usage||'0').toLocaleString()+' T':'—'}</td><td onclick="event.stopPropagation()"><button class="btn red sm" onclick="deleteProjectById('${p.id}','${esc(p.name)}')">삭제</button></td></tr>`;
  }).join(''):empty(5,'등록된 프로젝트가 없습니다');
  const sortedByToken=[...rows].sort((a,b)=>parseToken(b.token_usage)-parseToken(a.token_usage));
- const visible=sortedByToken.filter(p=>parseToken(p.token_usage)>0||rows.length<=6);
- const display=visible.length?visible:sortedByToken;
+ const display=sortedByToken.filter(p=>parseToken(p.token_usage)>0);
  document.getElementById('homeProjectBody').innerHTML=display.length?display.slice(0,6).map((p,i)=>{
    const tokens=parseToken(p.token_usage);
-   return `<tr><td><b>${i+1}.</b> ${esc(p.name)}</td><td>${badge(p.status)}</td><td class="small" style="font-weight:600">${tokens>0?tokens.toLocaleString()+' T':'—'}</td></tr>`;
- }).join(''):empty(3,'등록된 프로젝트가 없습니다');
+   return `<tr><td><b>${i+1}.</b> ${esc(p.name)}</td><td>${badge(p.status)}</td><td class="small" style="font-weight:600">${tokens.toLocaleString()} T</td></tr>`;
+ }).join(''):empty(3,'토큰 사용 중인 프로젝트가 없습니다');
 }
 // renderPrDeptChips는 위에서 정의됨
 function togglePrDept(btn){const n=btn.dataset.name,i=prSelectedDepts.indexOf(n);if(i>=0){prSelectedDepts.splice(i,1);btn.classList.remove('on')}else{prSelectedDepts.push(n);btn.classList.add('on')}}
@@ -3047,16 +3036,13 @@ async function loadSecKpi(){
   const newT=tasks.filter(t=>t.status==='대기');
   const delayed=active.filter(t=>(Date.now()-new Date(t.created_at))>7*86400000);
   const progProj=projects.filter(p=>p.status==='진행중');
-  const urgentApprovals=approvals.filter(a=>a.status==='긴급'||a.level==='긴급');
   document.getElementById('kpiProjects').textContent=progProj.length;
   document.getElementById('kpiDone').textContent=done.length;
   document.getElementById('kpiNew').textContent=newT.length;
   document.getElementById('kpiApproval').textContent=approvals.length;
   document.getElementById('kpiDelayed').textContent=delayed.length;
   const totalK=projects.reduce((a,x)=>a+parseInt(String(x.token_usage||'0').replace(/[^0-9]/g,'')||0,10),0);
-  const secApiEl=document.getElementById('secApi');if(secApiEl)secApiEl.textContent='₩'+Math.round(totalK*1000*0.000004*1380).toLocaleString();
-  document.getElementById('kpiApprovalList').innerHTML=approvals.length?`<table><thead><tr><th>항목</th><th>요청자</th><th>상태</th><th>관리</th></tr></thead><tbody>${approvals.map(a=>`<tr><td><b>${esc(a.title)}</b></td><td>${esc(a.requester||'—')}</td><td>${badge(a.status)}</td><td><button class="btn sm" onclick="processApproval('${a.id}','승인')">승인</button> <button class="btn red sm" onclick="openReject('${a.id}')">반려</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">승인 대기 항목이 없습니다</div>';
-  document.getElementById('kpiUrgentList').innerHTML=urgentApprovals.length?urgentApprovals.map(a=>`<div class="card" style="background:var(--redL);box-shadow:none;margin-bottom:8px"><b style="color:var(--red)">${esc(a.title)}</b></div>`).join(''):'<div class="empty">긴급 승인 항목이 없습니다</div>';
+  const secApiEl=document.getElementById('secApi');if(secApiEl)secApiEl.textContent='₩'+Math.round(totalK*0.00001*1380).toLocaleString();
 }
 
 /* ============ 리스크 센터 ============ */
@@ -3347,6 +3333,811 @@ function renderThreadsHistory(){
   if(!box)return;
   const history=JSON.parse(localStorage.getItem('rs_threads_history')||'[]');
   box.innerHTML=history.length?history.map(h=>`<div style="padding:8px 0;border-bottom:1px solid var(--border)"><div class="small" style="font-weight:600">${esc(h.text)}${h.text.length>=50?'…':''}</div><div class="small muted">${esc(h.date)}</div></div>`).join(''):'<div class="empty">발행 내역이 없습니다</div>';
+}
+
+
+/* ============ 복구된 Tool 함수들 ============ */
+const THREAD_QUEUE_KEY='rs_thread_queue';
+/* ============ 포스터 메이커 ============ */
+let posterColorScheme='dark';
+const POSTER_COLORS={
+  'dark':'dark background, near-black, charcoal, deep shadows',
+  'pink-purple':'pink crystal, lavender, violet, magenta gradient',
+  'gold-black':'gold, champagne, black, luxury metallic',
+  'blue-cyan':'electric blue, cyan, neon, tech vibes',
+  'white-minimal':'clean white, minimal, lots of whitespace, subtle gray',
+  'green-earth':'forest green, sage, earth tones, natural'
+};
+function selectPosterColor(el,scheme){
+  document.querySelectorAll('#posterColorPicker div').forEach(d=>d.style.border='3px solid transparent');
+  el.style.border='3px solid #3182f6';
+  posterColorScheme=scheme;
+}
+const POSTER_TEMPLATES={
+  reel:`FORMAT: 4:5 vertical Instagram Reel cover poster, 1080x1350px
+STYLE: bold social editorial, strong Korean headline, save-worthy layout`,
+  event:`FORMAT: 4:5 vertical event announcement poster
+STYLE: clean Korean event poster, date and venue prominent, energetic`,
+  kpop:`FORMAT: 4:5 vertical K-pop album cover style poster
+STYLE: premium K-pop aesthetic, idol visual language, moody lighting`,
+  brand:`FORMAT: 4:5 vertical brand campaign poster
+STYLE: premium brand campaign, editorial fashion, luxury marketing`,
+  game:`FORMAT: 4:5 vertical premium fantasy game poster
+STYLE: AAA game marketing artwork, MMORPG expansion key visual, collector edition`,
+  custom:''
+};
+async function generatePosterPrompt(){
+  const use=document.getElementById('posterUse').value;
+  const ratio=document.getElementById('posterRatio').value;
+  const title=document.getElementById('posterTitle').value||'제목 없음';
+  const mood=document.getElementById('posterMood').value||'세련된';
+  const colorDesc=POSTER_COLORS[posterColorScheme]||'dark';
+  const baseTemplate=POSTER_TEMPLATES[use]||'';
+  const statusEl=document.getElementById('posterPromptResult');
+  statusEl.textContent='⏳ 프롬프트 생성 중...';
+  try{
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
+      body:JSON.stringify({
+        model:'gpt-4o',max_tokens:1500,
+        messages:[{role:'system',content:`아래 정보를 바탕으로 Canva에서 사용할 영문 포스터 생성 프롬프트를 작성하세요.
+FORMAT, TYPOGRAPHY, MAIN VISUAL, COLOR, STYLE, FX 섹션을 포함하세요.
+프롬프트만 출력하고 설명은 하지 마세요.`},{role:'user',content:`용도: ${use}\n비율: ${ratio}\n제목/텍스트: ${title}\n분위기: ${mood}\n컬러: ${colorDesc}\n베이스 템플릿: ${baseTemplate}\n\n위 내용으로 Canva 포스터 생성 프롬프트를 작성해줘.`}],
+      })
+    });
+    const data=await resp.json();
+    statusEl.textContent=data.choices?.[0]?.message?.content||'생성 실패';
+  }catch(e){statusEl.textContent='❌ 실패: '+e.message;}
+}
+function copyPosterPrompt(){
+  const text=document.getElementById('posterPromptResult').textContent;
+  if(!text||text.includes('입력하고'))return alert('먼저 프롬프트를 생성해주세요');
+  navigator.clipboard.writeText(`Create a poster using Canva\n\n${text}`);
+  alert('✅ 복사 완료!\nClaude 채팅에 붙여넣으세요.');
+}
+function updatePosterPrompt(){}
+
+function threadsTab(btn,id){
+  document.querySelectorAll('#threads-tool .sec-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#threads-tool .sec-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+  if(id==='threads-api'){loadThreadsCreds();renderThreadsHistory();}
+  if(id==='threads-queue'){renderThreadQueue();}
+}
+let currentThreadContent=null;
+async function generateCoupangThread(){
+  const url=document.getElementById('coupangUrl').value.trim();
+  const name=document.getElementById('coupangProductName').value.trim();
+  const price=document.getElementById('coupangPrice').value.trim();
+  const tone=document.getElementById('coupangTone').value;
+  const account=document.getElementById('coupangAccount').value;
+  if(!url&&!name)return alert('URL 또는 상품명을 입력하세요');
+  const statusEl=document.getElementById('coupangStatus');
+  statusEl.textContent='⏳ 스레드 생성 중...';
+  const toneMap={casual:'친근하고 솔직하게, 친구에게 추천하는 말투',urgent:'긴급/한정 강조, 빨리 사야 한다는 느낌',review:'실제 사용 후기 스타일, 구체적인 경험담',info:'상품 정보 중심, 핵심 스펙과 장점'};
+  try{
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
+      body:JSON.stringify({
+        model:'gpt-4o',max_tokens:1000,
+        messages:[{role:'system',content:`스레드 게시글 구조:
+[본문] 150자 이내, 훅+상품소개+가격
+[댓글] 구매 링크는 프로필에서 확인 가능 안내 + 광고 표시
+※ 댓글에 직접 링크 대신 "프로필 링크에서 확인하세요" 문구 사용
+[광고 표시] 반드시 "[광고] 이 포스팅은 쿠팡 파트너스 활동의 일환" 포함
+JSON으로만 반환: {"main":"본문","comment":"댓글","hashtags":["태그1",...]}`},{role:'user',content:`상품: ${name||'링크 참조'}\n가격: ${price||'미정'}\nURL: ${url}\n말투: ${toneMap[tone]}\n계정: ${account}번\n\n스레드 게시글 생성해줘`}],
+      })
+    });
+    const data=await resp.json();
+    const text=data.choices?.[0]?.message?.content||'{}';
+    const match=text.match(/\{[\s\S]*\}/);
+    const parsed=match?JSON.parse(match[0]):{main:text,comment:'',hashtags:[]};
+    currentThreadContent={...parsed,url,account,productName:name||'상품'};
+    document.getElementById('coupangResult').innerHTML=`
+      <div style="background:#f8f9fb;border-radius:10px;padding:14px;margin-bottom:10px">
+        <div class="small" style="color:var(--sub);margin-bottom:6px">📝 본문</div>
+        <div style="font-size:13px;white-space:pre-wrap">${esc(parsed.main||'')}</div>
+      </div>
+      <div style="background:#f8f9fb;border-radius:10px;padding:14px;margin-bottom:10px">
+        <div class="small" style="color:var(--sub);margin-bottom:6px">💬 댓글</div>
+        <div style="font-size:13px;white-space:pre-wrap">${esc(parsed.comment||'')}</div>
+      </div>
+      <div style="font-size:12px;color:var(--sub)">${(parsed.hashtags||[]).map(h=>`#${h}`).join(' ')}</div>`;
+    document.getElementById('addToQueueBtn').style.display='block';
+    statusEl.textContent='✅ 완료';
+  }catch(e){statusEl.textContent='❌ 실패: '+e.message;}
+}
+function addToThreadQueue(){
+  if(!currentThreadContent)return;
+  const list=JSON.parse(localStorage.getItem(THREAD_QUEUE_KEY)||'[]');
+  list.push({...currentThreadContent,id:Date.now(),createdAt:new Date().toLocaleString('ko-KR'),status:'대기'});
+  localStorage.setItem(THREAD_QUEUE_KEY,JSON.stringify(list));
+  renderThreadQueue();
+  alert('✅ 대기열에 추가됐습니다');
+  threadsTab(document.querySelector('#threads-tool .sec-tab:nth-child(3)'),'threads-queue');
+}
+async function generateThread(){
+  const topic=document.getElementById('threadTopic').value.trim();
+  if(!topic)return alert('주제를 입력하세요');
+  const tags=document.getElementById('threadTags').value.trim();
+  const type=document.getElementById('threadType').value;
+  const account=document.getElementById('threadAccount').value;
+  const typeMap={short:'짧은 3~5줄',thread:'본문+댓글 연결형',list:'리스트형 정보 나열',story:'스토리형 경험담'};
+  try{
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
+      body:JSON.stringify({
+        model:'gpt-4o',max_tokens:600,
+        messages:[{role:'system',content:`당신은 스레드 전문 작가입니다. ${tags?`학습 태그: ${tags}`:''}`},{role:'user',content:`주제: ${topic}\n유형: ${typeMap[type]}\n\n스레드 글 작성해줘`}],
+      })
+    });
+    const data=await resp.json();
+    const text=data.choices?.[0]?.message?.content||'{}';
+    const match=text.match(/\{[\s\S]*\}/);
+    const parsed=match?JSON.parse(match[0]):{main:text};
+    currentThreadContent={...parsed,account,type:'general'};
+    document.getElementById('threadWriteResult').innerHTML=`
+      <div style="background:#f8f9fb;border-radius:10px;padding:14px;margin-bottom:8px;white-space:pre-wrap;font-size:13px">${esc(parsed.main||'')}</div>
+      ${parsed.comment?`<div style="background:#f8f9fb;border-radius:10px;padding:14px;margin-bottom:8px;white-space:pre-wrap;font-size:12px;color:var(--sub)">${esc(parsed.comment)}</div>`:''}
+      <div style="font-size:12px;color:var(--sub)">${(parsed.hashtags||[]).map(h=>`#${h}`).join(' ')}</div>`;
+    document.getElementById('threadQueueBtn').style.display='block';
+  }catch(e){alert('실패: '+e.message);}
+}
+function addThreadToQueue(){addToThreadQueue();}
+function renderThreadQueue(){
+  const list=JSON.parse(localStorage.getItem(THREAD_QUEUE_KEY)||'[]');
+  const box=document.getElementById('threadQueueList');
+  const cnt=document.getElementById('threadQueueCount');
+  if(cnt)cnt.textContent=list.length+'개';
+  if(!list.length){box.innerHTML='<div class="empty">대기열이 비어있습니다</div>';return;}
+  box.innerHTML=list.map((item,i)=>`
+    <div class="row" style="padding:10px 0;border-bottom:1px solid var(--border);gap:8px;align-items:flex-start">
+      <span class="badge ${item.status==='완료'?'b-green':'b-yellow'}" style="white-space:nowrap;font-size:11px">${item.status}</span>
+      <div style="flex:1">
+        <b style="font-size:12px">계정${item.account} · ${esc(item.productName||item.type||'스레드')}</b>
+        <div class="small muted" style="margin-top:2px">${esc((item.main||'').slice(0,50))}...</div>
+        <div class="small muted">${esc(item.createdAt)}</div>
+      </div>
+      <button class="btn sm" onclick="copyThreadItem(${item.id})">복사</button>
+      <button class="btn sm" style="color:var(--red)" onclick="deleteThreadItem(${item.id})">삭제</button>
+    </div>`).join('');
+}
+function copyThreadItem(id){
+  const list=JSON.parse(localStorage.getItem(THREAD_QUEUE_KEY)||'[]');
+  const item=list.find(i=>i.id===id);
+  if(!item)return;
+  const text=`${item.main}\n\n${item.comment||''}`;
+  navigator.clipboard.writeText(text);
+  alert('✅ 복사됐습니다');
+}
+function deleteThreadItem(id){
+  let list=JSON.parse(localStorage.getItem(THREAD_QUEUE_KEY)||'[]');
+  list=list.filter(i=>i.id!==id);
+  localStorage.setItem(THREAD_QUEUE_KEY,JSON.stringify(list));
+  renderThreadQueue();
+}
+function clearThreadQueue(){if(!confirm('대기열을 전부 삭제할까요?'))return;localStorage.removeItem(THREAD_QUEUE_KEY);renderThreadQueue();}
+
+
+/* ============ 샤오홍슈 대본 ============ */
+function previewXhsImage(input){
+  const f=input.files?.[0];
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    const preview=document.getElementById('xhsImagePreview');
+    preview.innerHTML=`<img src="${r.result}" style="max-height:80px;border-radius:8px;margin-bottom:4px">`;
+    document.getElementById('xhsDesc').placeholder='이미지를 분석해서 본문을 생성합니다...';
+  };
+  r.readAsDataURL(f);
+}
+async function generateXhsScript(){
+  const desc=document.getElementById('xhsDesc').value.trim();
+  const cat=document.getElementById('xhsCategory').value;
+  const mood=document.getElementById('xhsMood').value;
+  if(!desc)return alert('사진 설명 또는 내용을 입력하세요');
+  const statusEl=document.getElementById('xhsStatus');
+  statusEl.textContent='⏳ 본문 생성 중...';
+  const catMap={fashion:'패션/스타일',beauty:'뷰티/스킨케어',food:'음식/맛집',travel:'여행/라이프스타일',fitness:'운동/건강',daily:'일상/감성',study:'공부/자기계발'};
+  const moodMap={cute:'귀엽고 발랄한 (可爱风)',aesthetic:'감성적이고 시적인 (文艺风)',informative:'정보 전달형 (干货)',funny:'유머러스한 (搞笑)',luxury:'럭셔리/고급스러운 (精致风)'};
+  try{
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
+      body:JSON.stringify({
+        model:'gpt-4o',max_tokens:1500,
+        messages:[{role:'system',content:`한국어 본문 3개 + 각각의 중국어 번역을 생성하세요.
+JSON으로만 반환:
+{"scripts":[{"korean":"한국어본문","chinese":"中文翻译","hashtags_kr":["태그"],"hashtags_cn":["标签"]},...]}`},{role:'user',content:`콘텐츠: ${desc}\n카테고리: ${catMap[cat]}\n분위기: ${moodMap[mood]}\n\n샤오홍슈 본문 3개 (한국어+중국어) 생성해줘`}],
+      })
+    });
+    const data=await resp.json();
+    const text=data.choices?.[0]?.message?.content||'{}';
+    const match=text.match(/\{[\s\S]*\}/);
+    const parsed=match?JSON.parse(match[0]):{scripts:[]};
+    const scripts=parsed.scripts||[];
+    document.getElementById('xhsResults').innerHTML=scripts.length?scripts.map((s,i)=>`
+      <div class="card" style="margin-bottom:12px;border:2px solid ${i===0?'var(--blue)':'var(--border)'}">
+        <div class="row" style="justify-content:space-between;margin-bottom:10px">
+          <span class="badge ${i===0?'b-blue':'b-yellow'}" style="font-size:11px">${i===0?'추천':'옵션 '+(i+1)}</span>
+          <div class="row" style="gap:6px">
+            <button class="btn sm" onclick="copyXhs('${i}','kr')">한국어 복사</button>
+            <button class="btn sm primary" onclick="copyXhs('${i}','cn')">中文 복사</button>
+          </div>
+        </div>
+        <div style="font-size:13px;white-space:pre-wrap;margin-bottom:8px;padding:10px;background:#f8f9fb;border-radius:8px">${esc(s.korean||'')}</div>
+        <div style="font-size:13px;white-space:pre-wrap;padding:10px;background:#fff8f0;border-radius:8px;color:#c0392b">${esc(s.chinese||'')}</div>
+        <div style="margin-top:8px;font-size:11px;color:var(--sub)">${(s.hashtags_kr||[]).map(h=>`#${h}`).join(' ')} / ${(s.hashtags_cn||[]).map(h=>`#${h}`).join(' ')}</div>
+      </div>`).join(''):'<div class="empty">생성 실패</div>';
+    window._xhsScripts=scripts;
+    statusEl.textContent='✅ 완료';
+  }catch(e){statusEl.textContent='❌ 실패: '+e.message;}
+}
+function copyXhs(idx,lang){
+  const scripts=window._xhsScripts||[];
+  const s=scripts[parseInt(idx)];
+  if(!s)return;
+  const text=lang==='kr'?`${s.korean}\n\n${(s.hashtags_kr||[]).map(h=>`#${h}`).join(' ')}`:`${s.chinese}\n\n${(s.hashtags_cn||[]).map(h=>`#${h}`).join(' ')}`;
+  navigator.clipboard.writeText(text);
+  alert('✅ 복사됐습니다!');
+}
+
+/* ============ 직원 관리 탭 ============ */
+function empPageTab(btn,id){
+  document.querySelectorAll('#employees .sec-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#employees .sec-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+  if(id==='emp-memory'){populateMemEmpSelects();loadEmpMemories();}
+  if(id==='emp-common'){loadCommonDocs();}
+}
+
+async function loadCommonDocs(){
+  try{
+    const rows=await sb('/sops?department=eq._system&select=title,content');
+    const constitution=rows.find(r=>r.title==='company_constitution');
+    const rules=rows.find(r=>r.title==='common_rules');
+    if(constitution){const el=document.getElementById('companyConstitution');if(el)el.value=constitution.content||'';}
+    if(rules){const el=document.getElementById('commonRules');if(el)el.value=rules.content||'';}
+  }catch(e){}
+}
+
+async function saveCommonDoc(title,contentId,statusId){
+  const content=document.getElementById(contentId)?.value.trim();
+  const statusEl=document.getElementById(statusId);
+  if(!content){if(statusEl)statusEl.textContent='내용을 입력하세요';return;}
+  try{
+    await sb(`/sops?department=eq._system&title=eq.${title}`,{method:'DELETE'});
+    await sb('/sops',{method:'POST',headers:{'Prefer':'return=minimal'},
+      body:JSON.stringify([{department:'_system',title,content,status:'active'}])});
+    if(statusEl){statusEl.textContent=`✅ ${new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})} 저장됨`;
+    setTimeout(()=>{statusEl.textContent='';},3000);}
+  }catch(e){if(statusEl)statusEl.textContent='❌ 실패: '+e.message;}
+}
+function saveCompanyConstitution(){saveCommonDoc('company_constitution','companyConstitution','constitutionStatus');}
+function saveCommonRules(){saveCommonDoc('common_rules','commonRules','commonRulesStatus');}
+
+function populateMemEmpSelects(){
+  const opts=employees.map(e=>`<option value="${e.id}">${esc(e.name)} (${esc(e.department||'')})</option>`).join('');
+  const s1=document.getElementById('memEmpSelect');
+  const s2=document.getElementById('memViewEmpSelect');
+  if(s1)s1.innerHTML='<option value="">직원 선택</option>'+opts;
+  if(s2)s2.innerHTML='<option value="">전체</option>'+opts;
+}
+
+let memFileData=null;
+let memFileType=null;
+let memFileName=null;
+
+function handleMemFileSelect(input){
+  const f=input.files?.[0];
+  if(!f)return;
+  readMemFile(f);
+}
+
+function handleMemFileDrop(e){
+  e.preventDefault();
+  document.getElementById('memFileZone').style.borderColor='var(--border)';
+  const f=e.dataTransfer.files?.[0];
+  if(!f)return;
+  readMemFile(f);
+}
+
+function readMemFile(f){
+  memFileName=f.name;
+  const ext=f.name.split('.').pop().toLowerCase();
+  const preview=document.getElementById('memFilePreview');
+  const icon={'pdf':'📕','txt':'📄','doc':'📝','docx':'📝','jpg':'🖼️','jpeg':'🖼️','png':'🖼️'}[ext]||'📄';
+
+  const r=new FileReader();
+  if(['jpg','jpeg','png'].includes(ext)){
+    memFileType='image';
+    r.onload=()=>{
+      memFileData=r.result.split(',')[1];
+      preview.innerHTML=`<img src="${r.result}" style="max-height:60px;border-radius:6px"><div class="small" style="margin-top:4px">${esc(f.name)}</div>`;
+    };
+    r.readAsDataURL(f);
+  } else {
+    memFileType='text';
+    r.onload=()=>{
+      memFileData=r.result;
+      preview.innerHTML=`<div style="font-size:28px">${icon}</div><div class="small" style="margin-top:4px">${esc(f.name)}</div><div class="small muted">${Math.round(r.result.length/1000)}K자</div>`;
+    };
+    r.readAsText(f,'UTF-8');
+  }
+}
+
+async function processMemFile(){
+  const empId=document.getElementById('memEmpSelect').value;
+  const note=document.getElementById('memFileNote').value.trim();
+  const statusEl=document.getElementById('memStatus');
+  const btn=document.getElementById('memProcessBtn');
+
+  if(!empId)return alert('직원을 선택하세요');
+  if(!memFileData)return alert('파일을 선택하세요');
+
+  const emp=employees.find(e=>e.id===empId);
+  btn.disabled=true;
+  statusEl.textContent='⏳ Claude가 파일 분석 중...';
+
+  try{
+    // 서버 프록시 경유 (CORS 차단 방지)
+    const payload={
+      emp_name: emp.name,
+      file_type: memFileType,
+      file_data: memFileData,
+      note: note||'',
+      media_type: memFileType==='image'?'image/jpeg':null
+    };
+
+    const resp=await fetch('/api/learn',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(window._oaiKey||'')},
+      body:JSON.stringify(payload)
+    });
+
+    if(!resp.ok) throw new Error('서버 오류: '+(await resp.text()));
+    const data=await resp.json();
+    if(data.error) throw new Error(data.error);
+    const memories=data.memories||[];
+
+    if(!memories.length)throw new Error('분석 결과가 없습니다');
+
+    // sops 테이블에 직원 메모리 저장 (agent_memory는 RLS 막힘)
+    const emp2=employees.find(e=>e.id===empId);
+    const rows=memories.map(m=>({
+      department:'_memory',
+      title:`mem_${empId}`,
+      content:`[${m.category}][출처: ${memFileName||'파일'}${note?' / '+note:''}] ${m.content}`,
+      project:emp2?emp2.name:'',
+      status:'active'
+    }));
+
+    await sb('/sops',{
+      method:'POST',
+      headers:{'Prefer':'return=minimal'},
+      body:JSON.stringify(rows)
+    });
+
+    statusEl.innerHTML=`✅ <b>${memories.length}개 메모리</b>가 ${emp.name}에게 저장됐습니다!<br><span class="small muted">이제 ${emp.name}과 대화하면 이 내용을 자동으로 참조합니다.</span>`;
+
+    // 초기화
+    memFileData=null;memFileType=null;memFileName=null;
+    document.getElementById('memFilePreview').innerHTML='📄';
+    document.getElementById('memFileNote').value='';
+    document.getElementById('memFileInput').value='';
+
+    await loadEmpMemories();
+
+  }catch(e){
+    statusEl.textContent='❌ 실패: '+e.message;
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+async function loadEmpMemories(){
+  const box=document.getElementById('memoryList');
+  if(!box)return;
+  const empId=document.getElementById('memViewEmpSelect')?.value||'';
+  let rows=[];
+  try{
+    const path=empId
+      ?`/sops?department=eq._memory&title=eq.mem_${empId}&order=created_at.desc&limit=50`
+      :'/sops?department=eq._memory&order=created_at.desc&limit=50';
+    rows=await sb(path);
+  }catch(e){}
+
+  if(!rows.length){box.innerHTML='<div class="empty">학습된 메모리가 없습니다</div>';return;}
+
+  box.innerHTML=rows.map(m=>{
+    const empName=m.project||'—';
+    const content=m.content||'';
+    const sourceMatch=content.match(/\[출처: ([^\]]+)\]/);
+    const source=sourceMatch?sourceMatch[1]:'';
+    return `<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div class="row" style="justify-content:space-between;margin-bottom:4px">
+        <div class="row" style="gap:6px">
+          <span class="badge b-blue" style="font-size:10px">${esc(empName)}</span>
+          ${source?`<span class="badge" style="font-size:10px;background:#f0f0f0">📄 ${esc(source)}</span>`:''}
+        </div>
+        <button class="btn sm" style="font-size:10px;color:var(--red);padding:2px 6px" onclick="deleteMemory('${m.id}')">삭제</button>
+      </div>
+      <div style="font-size:12px;line-height:1.7">${esc(content.replace(/\[[^\]]+\]\[출처:[^\]]+\]\s*/,'').replace(/\[출처:[^\]]+\]\s*/,''))}</div>
+      <div class="small muted" style="margin-top:2px">${m.created_at?new Date(m.created_at).toLocaleDateString('ko-KR'):''}</div>
+    </div>`;
+  }).join('');
+}
+
+async function deleteMemory(id){
+  if(!confirm('이 메모리를 삭제할까요?'))return;
+  try{
+    await sb(`/sops?id=eq.${id}`,{method:'DELETE'});
+    await loadEmpMemories();
+  }catch(e){alert('삭제 실패: '+e.message);}
+}
+
+
+/* ============ Suno 프롬프트 도우미 ============ */
+let sunoSelectedTags=[];
+function toggleSunoTag(btn,tag){
+  if(btn.classList.contains('on')){
+    btn.classList.remove('on');
+    sunoSelectedTags=sunoSelectedTags.filter(t=>t!==tag);
+  } else {
+    btn.classList.add('on');
+    sunoSelectedTags.push(tag);
+  }
+}
+
+let sunoPrompts=[];
+
+async function generateSunoPrompts(){
+  const mood=document.getElementById('sunoMood').value.trim();
+  const vocal=document.getElementById('sunoVocal').value;
+  const bpm=document.getElementById('sunoBpm').value;
+  const purpose=document.getElementById('sunoPurpose').value;
+  const statusEl=document.getElementById('sunoStatus');
+
+  if(!mood&&sunoSelectedTags.length===0)return alert('분위기나 장르를 하나 이상 선택해주세요');
+
+  statusEl.textContent='⏳ 프롬프트 생성 중...';
+  document.getElementById('sunoResults').innerHTML=`<div style="text-align:center;padding:40px 0"><div style="font-size:24px;margin-bottom:8px">🎵</div><div class="small muted">5개 생성 중...</div></div>`;
+
+  const genreStr=sunoSelectedTags.join(', ')||'장르 자유';
+  const bpmStr=bpm||'';
+
+  try{
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(window._oaiKey||'')},
+      body:JSON.stringify({
+        model:'gpt-4o',
+        max_tokens:1500,
+        system:`당신은 Suno AI 음악 생성 전문가입니다.
+Suno의 Style of Music 프롬프트를 작성합니다.
+
+[Suno 프롬프트 규칙]
+- 영어로 작성 (Suno는 영어 프롬프트가 최적)
+- 장르, 분위기, 악기, 보컬, 템포 순으로 나열
+- 쉼표로 구분, 20~40단어 이내
+- 구체적이고 음악적인 표현 사용
+- 각 프롬프트는 서로 다른 느낌이어야 함
+
+JSON만 반환:
+{"prompts":[
+  {"title":"한국어 제목","prompt":"영어 프롬프트","description":"한 줄 설명"},
+  ...
+]}`,
+        messages:[{role:'user',content:`다음 조건으로 Suno 프롬프트 5개 만들어줘:
+분위기: ${mood||'자유'}
+장르/스타일: ${genreStr}
+보컬: ${vocal}
+템포: ${bpmStr||'자유'}
+사용 목적: ${purpose}
+
+5개 모두 같은 목적이지만 조금씩 다른 느낌으로 만들어줘.`}]
+      })
+    });
+
+    const data=await resp.json();
+    const raw=data.choices?.[0]?.message?.content||'{}';
+    const match=raw.match(/\{[\s\S]*\}/);
+    const parsed=match?JSON.parse(match[0]):{prompts:[]};
+    sunoPrompts=parsed.prompts||[];
+
+    if(!sunoPrompts.length)throw new Error('생성 실패');
+
+    document.getElementById('sunoResults').innerHTML=sunoPrompts.map((p,i)=>`
+      <div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div class="row" style="justify-content:space-between;margin-bottom:8px">
+          <div>
+            <b style="font-size:13px">${String(i+1).padStart(2,'0')}. ${esc(p.title)}</b>
+            <div class="small muted" style="margin-top:2px">${esc(p.description)}</div>
+          </div>
+          <button class="btn sm primary" onclick="copySunoPrompt(${i})" style="white-space:nowrap;flex-shrink:0">복사</button>
+        </div>
+        <div style="background:#f8f9fb;border-radius:8px;padding:10px;font-size:12px;font-family:monospace;line-height:1.7;color:#2d3748;word-break:break-all">${esc(p.prompt)}</div>
+      </div>`).join('');
+
+    document.getElementById('sunoCopyAllBtn').style.display='block';
+    statusEl.textContent=`✅ ${sunoPrompts.length}개 생성 완료`;
+  }catch(e){
+    statusEl.textContent='❌ 실패: '+e.message;
+    document.getElementById('sunoResults').innerHTML=`<div class="empty">생성 실패: ${esc(e.message)}</div>`;
+  }
+}
+
+function copySunoPrompt(idx){
+  const p=sunoPrompts[idx];
+  if(!p)return;
+  navigator.clipboard.writeText(p.prompt);
+  alert(`✅ 복사됐습니다!\n\nsuno.com → Create → Custom Mode → Style of Music에 붙여넣으세요.`);
+}
+
+function copyAllSunoPrompts(){
+  if(!sunoPrompts.length)return;
+  const text=sunoPrompts.map((p,i)=>`[${i+1}] ${p.title}\n${p.prompt}`).join('\n\n');
+  navigator.clipboard.writeText(text);
+  alert('✅ 전체 복사됐습니다!');
+}
+
+
+/* ============ 카드뉴스 메이커 ============ */
+let cnCards=[],cnCurrentIdx=0,cnBg='#191f28',cnFg='#ffffff';
+
+// 노션 워크플로우의 프로젝트 지침을 system prompt로 사용
+const CN_SYSTEM_PROMPT=`You are a premium Korean carousel design director and visual content strategist.
+
+Your job is to turn any topic into a complete Korean carousel post with strong copy, clear visual hierarchy, and export-ready design direction.
+
+The final carousel must be written entirely in Korean.
+All visible text inside the carousel must be natural Korean.
+Do not use English headings, English labels, placeholder Latin text, unreadable fake text, Lorem ipsum, random glyphs, or mixed-language UI text.
+Only use English when the user explicitly provides a brand name, tool name, product name, or unavoidable proper noun.
+
+DEFAULT FORMAT
+- 10 slides (unless specified)
+- 4:5 vertical carousel
+- 1080 x 1350 px design ratio
+- Korean card news style
+- clean editorial layout
+- strong mobile readability
+
+OUTPUT: Return ONLY a JSON array. No markdown, no explanation.
+Format:
+[
+  {
+    "slide": 1,
+    "label": "1장",
+    "title": "메인 헤드라인",
+    "body": "서브 카피 (1~3줄, 줄바꿈은 \\n 사용)",
+    "layout": "레이아웃 설명",
+    "accent": "포인트 요소 (선택)",
+    "design": "디자인 포인트"
+  }
+]
+
+STRUCTURE:
+1장 — 강한 도입 (훅)
+2장 — 궁금증 확장
+3장 — 문제 정의
+4장 — 관점 전환 1
+5장 — 관점 전환 2
+6장 — 핵심 설명 (저장 가치 최고)
+7장 — 적용 방식
+8장 — 결정적 깨달음
+9장 — 실행 체크리스트
+10장 — 마무리 CTA
+
+RULES:
+- 모든 텍스트는 한국어
+- 1장: 헤드라인만 or 헤드라인+짧은 서브
+- 2~8장: 헤드라인 + 1~3줄
+- 9장: 체크리스트 형식
+- 10장: CTA + 마무리 문구
+- 근거 없는 통계/수치 절대 금지`;
+
+function selectCnColor(el,bg,fg){
+  document.querySelectorAll('#cnColorPicker div').forEach(d=>d.style.border='3px solid transparent');
+  el.style.border='3px solid '+(bg==='#ffffff'?'#ddd':bg);
+  cnBg=bg;cnFg=fg;
+  if(cnCards.length)renderCnCard(cnCurrentIdx);
+}
+
+async function generateCardNews(){
+  const topic=(document.getElementById('cnTopic').value||'').trim();
+  if(!topic)return alert('주제를 입력해주세요');
+  const target=document.getElementById('cnTarget')?.value||'';
+  const goal=document.getElementById('cnGoal')?.value||'';
+  const tone=document.getElementById('cnTone')?.value||'';
+  const cta=document.getElementById('cnCta')?.value||'';
+  const platform=document.getElementById('cnPlatform')?.value||'instagram';
+  const count=document.getElementById('cnCount')?.value||'10';
+  const variant=document.getElementById('cnVariantMode')?.checked||false;
+  const statusEl=document.getElementById('cnStatus');
+  statusEl.textContent='⏳ GPT-4o가 카드뉴스를 생성 중...';
+
+  // 유저 프롬프트 구성 (노션 워크플로우 방식)
+  let userPrompt=`주제: ${topic}`;
+  if(target)userPrompt+=`\n타깃: ${target}`;
+  if(goal)userPrompt+=`\n목표: ${goal}`;
+  if(tone)userPrompt+=`\n톤: ${tone}`;
+  if(cta)userPrompt+=`\nCTA: ${cta}`;
+  userPrompt+=`\n플랫폼: ${platform==='instagram'?'인스타그램 4:5':platform==='thread'?'스레드 4:5':'블로그 16:9'}`;
+  userPrompt+=`\n슬라이드 수: ${count}장`;
+  if(variant)userPrompt+=`\n\n중요: 매번 비슷한 템플릿처럼 만들지 말고, 주제에 맞는 표, 차트, 라인, 섹션 분할, 비교 박스, 체크리스트, 타임라인 같은 시각 요소를 적극 활용해줘. 타이포 계층, 컬러 배치, 배경 텍스처도 이전 결과와 다르게 설계해줘.`;
+  userPrompt+=`\n\n위 내용으로 한국어 ${count}장 카드뉴스를 JSON 배열로만 반환해줘. 설명 없이 JSON만.`;
+
+  try{
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(window._oaiKey||'')},
+      body:JSON.stringify({
+        model:'gpt-4o',
+        max_tokens:4000,
+        messages:[{role:'system',content:CN_SYSTEM_PROMPT},{role:'user',content:userPrompt}]
+      })
+    });
+
+    if(!resp.ok){
+      const err=await resp.text();
+      throw new Error('API 오류: '+err.slice(0,200));
+    }
+
+    const data=await resp.json();
+    const raw=data.choices?.[0]?.message?.content||'[]';
+
+    // JSON 파싱
+    let slides=[];
+    try{
+      // 마크다운 코드블록 제거
+      const clean=raw.replace(/```json?/g,'').replace(/```/g,'').trim();
+      // 배열 추출
+      const match=clean.match(/\[[\s\S]*\]/);
+      if(match)slides=JSON.parse(match[0]);
+      else slides=JSON.parse(clean);
+    }catch(e){
+      throw new Error('응답 파싱 실패. 다시 시도해주세요.');
+    }
+
+    if(!slides.length)throw new Error('슬라이드 데이터가 없습니다');
+
+    cnCards=slides;
+    cnCurrentIdx=0;
+    renderCnCard(0);
+    renderCnThumbs();
+
+    document.getElementById('cnCardList').style.display='block';
+    document.getElementById('cnActions').style.display='flex';
+    document.getElementById('cnTotalBadge').textContent=slides.length+'장';
+    document.getElementById('cnPageNum').textContent=`1 / ${slides.length}`;
+    statusEl.textContent=`✅ ${slides.length}장 생성 완료`;
+
+  }catch(e){
+    statusEl.textContent='❌ 생성 실패: '+e.message;
+    console.error(e);
+  }
+}
+
+function renderCnCard(idx){
+  const card=cnCards[idx];if(!card)return;
+  const fontSize=document.getElementById('cnFontSize')?.value||'large';
+  const titleSz=fontSize==='large'?'26px':fontSize==='small'?'18px':'22px';
+  const bodySz=fontSize==='large'?'14px':fontSize==='small'?'11px':'13px';
+  const labelSz='11px';
+
+  // 체크리스트 슬라이드 감지
+  const isChecklist=card.label?.includes('9장')||card.body?.includes('□')||card.body?.includes('✅')||card.body?.includes('체크');
+  const bodyLines=(card.body||'').split('\\n').filter(Boolean);
+
+  const bodyHTML=isChecklist
+    ?bodyLines.map(l=>`<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px"><span style="color:${cnFg};opacity:.6;flex-shrink:0">✓</span><span>${esc(l.replace(/^[□✅✓·\-]/,'').trim())}</span></div>`).join('')
+    :bodyLines.map(l=>`<div style="margin-bottom:4px">${esc(l)}</div>`).join('');
+
+  document.getElementById('cnPreview').innerHTML=`
+    <div id="cnSlide${idx}" style="width:100%;aspect-ratio:4/5;max-width:340px;background:${cnBg};border-radius:14px;display:flex;flex-direction:column;justify-content:space-between;padding:28px 24px;box-sizing:border-box;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative;overflow:hidden">
+      <!-- 배경 장식 -->
+      <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:${cnFg};opacity:.04"></div>
+      <div style="position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;border-radius:50%;background:${cnFg};opacity:.04"></div>
+      <!-- 장 번호 -->
+      <div style="font-size:${labelSz};font-weight:800;color:${cnFg};opacity:.45;letter-spacing:2px;font-family:'Pretendard',sans-serif">${esc(card.label||idx+1+'장')}</div>
+      <!-- 메인 콘텐츠 -->
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:16px 0">
+        ${card.accent?`<div style="font-size:11px;font-weight:700;color:${cnFg};opacity:.5;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px">${esc(card.accent)}</div>`:''}
+        <div style="font-size:${titleSz};font-weight:900;color:${cnFg};line-height:1.3;word-break:keep-all;font-family:'Pretendard',sans-serif;margin-bottom:${bodyHTML?'14px':'0'}">${esc(card.title||'')}</div>
+        ${bodyHTML?`<div style="font-size:${bodySz};color:${cnFg};opacity:.78;line-height:1.7;word-break:keep-all;font-family:'Pretendard',sans-serif">${bodyHTML}</div>`:''}
+      </div>
+      <!-- 하단 구분선 -->
+      <div style="display:flex;align-items:center;gap:8px;padding-top:12px;border-top:1px solid ${cnFg === '#ffffff' ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.08)'}">
+        <div style="width:24px;height:2px;background:${cnFg};opacity:.4;border-radius:1px"></div>
+        <span style="font-size:10px;color:${cnFg};opacity:.35;font-family:'Pretendard',sans-serif">${esc(document.getElementById('cnBrandName')?.value||'Rolling Stone Design')}</span>
+      </div>
+    </div>`;
+  document.getElementById('cnPageNum').textContent=`${idx+1} / ${cnCards.length}`;
+}
+
+// PNG 저장 (html2canvas CDN 사용)
+async function downloadCurrentCard(){
+  const el=document.querySelector('#cnPreview > div');
+  if(!el)return alert('카드를 먼저 생성해주세요');
+  statusEl_cn('PNG 저장 중...');
+  try{
+    if(!window.html2canvas){
+      await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+    }
+    const canvas=await html2canvas(el,{scale:3,useCORS:true,backgroundColor:cnBg});
+    const a=document.createElement('a');
+    a.href=canvas.toDataURL('image/png');
+    a.download=`카드뉴스_${cnCurrentIdx+1}장_${Date.now()}.png`;
+    a.click();
+    statusEl_cn('저장 완료!');
+  }catch(e){alert('PNG 저장 실패: '+e.message);}
+}
+
+async function downloadAllCards(){
+  alert(`전체 ${cnCards.length}장 PNG 저장을 시작합니다.\n각 장을 순서대로 저장합니다.`);
+  for(let i=0;i<cnCards.length;i++){
+    cnCurrentIdx=i;renderCnCard(i);
+    await new Promise(r=>setTimeout(r,400));
+    await downloadCurrentCard();
+    await new Promise(r=>setTimeout(r,300));
+  }
+}
+
+function statusEl_cn(msg){const el=document.getElementById('cnStatus');if(el)el.textContent=msg;}
+
+/* ============ 자동 보고서 스케줄 ============ */
+async function checkAutoReport(){
+  const now=new Date();
+  const key=`rs_report_${now.getFullYear()}_${now.getMonth()}_${now.getDate()}`;
+  if(localStorage.getItem(key))return;
+  const day=now.getDate(),month=now.getMonth()+1,dow=now.getDay();
+  let period=null;
+  if(now.getMonth()===0&&day===1)period='yearly';
+  else if(now.getMonth()===11&&day===31)period='yearly';
+  else if([1,3,6,9,12].includes(month)&&day===1)period='quarterly';
+  else if(day===1)period='monthly';
+  else if(dow===1)period='weekly';
+  if(!period)return;
+  localStorage.setItem(key,'1');
+
+  // 정기 보고서 산출물 자동 생성 (Supabase에 저장)
+  try{
+    let tasks=[],outputs=[],projects=[];
+    const director=employees.find(e=>(e.position||'').includes('총괄'));
+    try{tasks=await sb('/tasks?select=*&order=created_at.desc');}catch(e){}
+    try{outputs=await sb('/outputs?select=*&order=created_at.desc');}catch(e){}
+    try{projects=await sb('/projects?select=*');}catch(e){}
+    const resp=await fetch('/api/report',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
+      body:JSON.stringify({period,tasks,outputs,projects,director:director?.name||'총괄이사'})});
+    if(!resp.ok)return;
+    const data=await resp.json();
+    const PERIOD_LABEL={weekly:'주간',monthly:'월간',quarterly:'분기',half:'반기',yearly:'연간'};
+    const title=`[자동] ${PERIOD_LABEL[period]||period} 업무보고서 — ${now.toLocaleDateString('ko-KR')}`;
+    await sb('/outputs',{method:'POST',body:JSON.stringify([{
+      name:title,department:'경영전략실',tag:'기획문서',
+      owner:'총괄이사',file_url:null,report_content:data.full_report||''
+    }])});
+    await log('보고서',title+' 자동 생성');
+  }catch(e){console.error('자동 보고서 오류:',e);}
+}
+
+/* ============ init ============ */
+async function initApp(){
+ await initConfig(); // Supabase 설정 먼저 로드
+ await loadEmployees();
+ await Promise.allSettled([
+   loadTasks(),loadMessenger(),loadApprovals(),loadReports(),
+   loadApprovalAlerts(),loadProjects(),loadOutputs(),loadSops(),
+   loadWeeklyTodos(),loadCkYear(),loadCalendar(),loadSchedule(),
+   loadNews(),loadLogs(),loadApiCost(),loadRevenue(),fetchWeather()
+ ]);
+ await loadHomeEmployees();
+ await loadYearChecklist();
+ await refreshBriefing();
+ checkAutoReport();
+ calcRoas();calcMargin();calcBep();
 }
 
 /* ============ 로켓그로스 ============ */
