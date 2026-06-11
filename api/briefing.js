@@ -1,5 +1,5 @@
-const SUPABASE_URL = 'https://lkcmgritsfjgvqsldqmc.supabase.co/rest/v1';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrY21ncml0c2ZqZ3Zxc2xkcW1jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTA3MzcsImV4cCI6MjA5NDQyNjczN30.x8v1q8-nCaRRtEJT-9GBoYl34R_KL0wB-UVmBJx_D9Q';
+const SUPABASE_URL = (process.env.SUPABASE_URL || 'https://lkcmgritsfjgvqsldqmc.supabase.co').replace(/\/rest\/v1\/?$/, '') + '/rest/v1';
+const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || '';
 
 async function sb(path) {
   const res = await fetch(SUPABASE_URL + path, {
@@ -8,18 +8,66 @@ async function sb(path) {
   return res.json();
 }
 
+// cron(GET) 모드: 서버에서 직접 데이터 수집
+async function collectData(baseUrl) {
+  const [tasks, projects, approvalRows] = await Promise.all([
+    sb('/tasks?select=title,status,assigned_employee_name,created_at&status=neq.완료&limit=30').catch(()=>[]),
+    sb('/projects?select=name,status&limit=20').catch(()=>[]),
+    sb('/approvals?select=id&status=eq.승인대기&limit=50').catch(()=>[])
+  ]);
+  // 구글 캘린더 오늘 일정
+  let schedules = [];
+  try {
+    const r = await fetch(baseUrl + '/api/gcal-events?days=1');
+    const d = await r.json();
+    const todayStr = new Date().toISOString().slice(0,10);
+    if (d.events) schedules = d.events.filter(e => e.date === todayStr);
+  } catch(e) {}
+  // 뉴스
+  let news = [];
+  try {
+    const r = await fetch(baseUrl + '/api/news?source=mk');
+    const d = await r.json();
+    news = (d.items || []).slice(0,3);
+  } catch(e) {}
+  const delayed = tasks.filter(t => (Date.now() - new Date(t.created_at)) > 7*86400000);
+  const newTasks = tasks.filter(t => t.status === '대기');
+  return { schedules, tasks, approvals: approvalRows.length, weather: {}, news, projects, delayed, newTasks };
+}
+
+async function sendTelegram(message) {
+  const r = await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: process.env.TELEGRAM_CHAT_ID, text: message, parse_mode: 'HTML' })
+  });
+  return r.json();
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // GET = cron 모드: 자체 수집 + 텔레그램 자동발송
+  let bodyData;
+  let isCron = false;
+  if (req.method === 'GET') {
+    isCron = true;
+    const baseUrl = 'https://' + (req.headers.host || 'rollingstone-ai.vercel.app');
+    bodyData = await collectData(baseUrl);
+  } else if (req.method === 'POST') {
+    bodyData = req.body || {};
+  } else {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
   const {
     schedules = [], tasks = [], approvals = 0,
     weather = {}, news = [], projects = [],
     delayed = [], newTasks = [],
-  } = req.body || {};
+  } = bodyData;
 
   const today = new Date().toLocaleDateString('ko-KR', {
     year: 'numeric', month: 'long', day: 'numeric', weekday: 'long',
@@ -113,8 +161,20 @@ JSON만 반환: {"telegram_message":"...","os_summary":"(3문장 핵심 요약)"
       if (match) parsed = JSON.parse(match[0]);
     } catch(e) { parsed = { telegram_message: raw, os_summary: raw }; }
 
+    const tgMsg = parsed.telegram_message || '';
+
+    // cron 모드: 텔레그램 자동 발송
+    if (isCron && tgMsg) {
+      const tgResult = await sendTelegram(tgMsg);
+      return res.status(200).json({
+        ok: true, cron: true,
+        telegram_sent: !!tgResult.ok,
+        telegram_error: tgResult.ok ? null : tgResult.description
+      });
+    }
+
     return res.status(200).json({
-      telegram_message: parsed.telegram_message || '',
+      telegram_message: tgMsg,
       os_summary: parsed.os_summary || '',
       briefing: parsed.os_summary || ''
     });
