@@ -312,7 +312,6 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
   <div class="nav-section">Tool</div>
   <button class="nav" data-view="poster">포스터 메이커</button>
   <button class="nav" data-view="cardnews">카드뉴스 메이커</button>
-  <button class="nav" data-view="threads-tool">스레드 자동화</button>
   <button class="nav" data-view="xiaohongshu">샤오홍슈 대본</button>
   <button class="nav" data-view="suno">Suno 프롬프트</button>
   <div class="nav-section">관리</div>
@@ -1024,8 +1023,8 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
       <h2 style="margin-bottom:12px">직원별 토큰 사용량</h2>
       <table style="table-layout:fixed">
         <colgroup><col style="width:40%"><col style="width:30%"><col style="width:30%"></colgroup>
-        <thead><tr><th>직원</th><th>토큰 (T)</th><th>완료 업무</th></tr></thead>
-        <tbody id="apiEmployeeBody"><tr><td colspan="3" class="empty">데이터 없음</td></tr></tbody>
+        <thead><tr><th>직원</th><th>토큰 (T)</th></tr></thead>
+        <tbody id="apiEmployeeBody"><tr><td colspan="2" class="empty">데이터 없음</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -1157,214 +1156,6 @@ Canva가 포스터 후보를 생성합니다.
           <b style="color:var(--text)">④ 그 아래</b> 복사한 프롬프트 붙여넣기<br>
           <b style="color:var(--text)">⑤ 후보 중</b> 마음에 드는 것 선택<br>
           <b style="color:var(--text)">⑥ Canva에서</b> 텍스트/색상 자유 편집 후 저장
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===================== 스레드 자동화 ===================== -->
-<section class="view" id="threads-tool" data-screen-label="스레드 자동화">
-  <div class="header">
-    <h1>스레드 자동화</h1>
-    <div class="row" style="gap:8px;align-items:center">
-      <span class="small muted">이 세션 API 비용: <b id="toolToken_threads">₩0</b></span>
-      <span class="badge b-green" style="font-size:11px">GPT-4o · 쿠팡파트너스</span>
-    </div>
-  </div>
-
-  <div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);overflow-x:auto">
-    <button class="sec-tab active" onclick="threadsTab(this,'threads-coupang')">🛒 쿠팡 자동화</button>
-    <button class="sec-tab" onclick="threadsTab(this,'threads-write')">✍️ 스레드 글쓰기</button>
-    <button class="sec-tab" onclick="threadsTab(this,'threads-api')">🔗 Threads API 발행</button>
-    <button class="sec-tab" onclick="threadsTab(this,'threads-queue')">📋 발행 대기열</button>
-    <button class="sec-tab" onclick="threadsTab(this,'threads-guide')">📖 운영 가이드</button>
-  </div>
-
-  <!-- 쿠팡 자동화 -->
-  <div id="threads-coupang" class="sec-panel active">
-    <div class="card" style="background:var(--blueL);box-shadow:none;margin-bottom:14px">
-      <div style="font-size:12px;line-height:1.9">
-        <b>🛒 쿠팡 파트너스 스레드 자동화</b><br>
-        쿠팡 상품 URL 입력 → AI가 스레드 본문 + 댓글 자동 생성 → 대기열에 저장 → 예약 발행
-      </div>
-    </div>
-    <div class="grid2" style="align-items:start">
-      <div class="card">
-        <h2>상품 정보 입력</h2>
-        <label style="font-size:12px;color:var(--sub)">쿠팡 상품 URL 또는 파트너스 링크</label>
-        <input id="coupangUrl" placeholder="https://link.coupang.com/a/..." style="margin-bottom:10px">
-        <label style="font-size:12px;color:var(--sub)">상품명 <span class="muted">(URL에서 자동 추출 안 될 시 입력)</span></label>
-        <input id="coupangProductName" placeholder="예: 닌텐도 스위치2" style="margin-bottom:10px">
-        <label style="font-size:12px;color:var(--sub)">가격 <span class="muted">(선택)</span></label>
-        <input id="coupangPrice" placeholder="예: 817,180원" style="margin-bottom:10px">
-        <label style="font-size:12px;color:var(--sub)">글 톤</label>
-        <select id="coupangTone" style="margin-bottom:10px">
-          <option value="casual">친근하고 솔직한</option>
-          <option value="urgent">긴급/한정 강조</option>
-          <option value="review">사용 후기 스타일</option>
-          <option value="info">정보 전달형</option>
-        </select>
-        <label style="font-size:12px;color:var(--sub)">계정 선택</label>
-        <select id="coupangAccount" style="margin-bottom:14px">
-          <option value="1">계정 1</option>
-          <option value="2">계정 2</option>
-          <option value="3">계정 3</option>
-          <option value="4">계정 4</option>
-          <option value="5">계정 5</option>
-        </select>
-        <button class="btn primary" style="width:100%" onclick="generateCoupangThread()">✨ 스레드 생성</button>
-        <div id="coupangStatus" class="small muted" style="margin-top:6px;text-align:center"></div>
-      </div>
-      <div class="card" style="min-height:400px">
-        <div class="row" style="justify-content:space-between;margin-bottom:10px">
-          <h2 style="font-size:14px;margin:0">생성된 스레드</h2>
-          <button class="btn sm primary" onclick="addToThreadQueue()" id="addToQueueBtn" style="display:none">+ 대기열 추가</button>
-        </div>
-        <div id="coupangResult" style="font-size:13px;line-height:1.9">
-          <div style="text-align:center;padding:40px 0">
-            <div style="font-size:32px;margin-bottom:8px">🛒</div>
-            <div class="small">상품 정보를 입력하고 생성하세요</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 스레드 글쓰기 -->
-  <div id="threads-write" class="sec-panel">
-    <div class="grid2" style="align-items:start">
-      <div class="card">
-        <h2>스레드 글 생성</h2>
-        <label style="font-size:12px;color:var(--sub)">주제</label>
-        <input id="threadTopic" placeholder="예: AI로 부업하는 방법" style="margin-bottom:10px">
-        <label style="font-size:12px;color:var(--sub)">학습 태그 (쉼표로 구분)</label>
-        <input id="threadTags" placeholder="예: 진지, 솔직, 구어체, 빠른리듬" style="margin-bottom:10px">
-        <label style="font-size:12px;color:var(--sub)">글 유형</label>
-        <select id="threadType" style="margin-bottom:10px">
-          <option value="short">짧은 글 (3~5줄)</option>
-          <option value="thread">스레드형 (본문+댓글 연결)</option>
-          <option value="list">리스트형 (정보 나열)</option>
-          <option value="story">스토리형 (경험담)</option>
-        </select>
-        <label style="font-size:12px;color:var(--sub)">계정 선택</label>
-        <select id="threadAccount" style="margin-bottom:14px">
-          <option value="1">계정 1</option>
-          <option value="2">계정 2</option>
-          <option value="3">계정 3</option>
-          <option value="4">계정 4</option>
-          <option value="5">계정 5</option>
-        </select>
-        <button class="btn primary" style="width:100%" onclick="generateThread()">✨ 글 생성</button>
-      </div>
-      <div class="card" style="min-height:360px">
-        <div class="row" style="justify-content:space-between;margin-bottom:10px">
-          <h2 style="font-size:14px;margin:0">생성된 글</h2>
-          <button class="btn sm primary" onclick="addThreadToQueue()" id="threadQueueBtn" style="display:none">+ 대기열</button>
-        </div>
-        <div id="threadWriteResult" style="font-size:13px;line-height:1.9">
-          <div class="empty" style="padding:40px 0;text-align:center">주제를 입력하고 생성하세요</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Threads API 발행 -->
-  <div id="threads-api" class="sec-panel">
-    <div class="card" style="background:var(--blueL);box-shadow:none;margin-bottom:14px">
-      <div style="font-size:12px;line-height:1.9">
-        <b>🔗 Meta Threads API 직접 발행</b><br>
-        Access Token 입력 → 글 작성 → 실제 Threads에 바로 발행됩니다.<br>
-        <a href="https://developers.facebook.com/docs/threads/get-started" target="_blank" style="color:var(--blue)">Access Token 발급 방법 →</a>
-      </div>
-    </div>
-    <div class="grid2" style="align-items:start">
-      <div class="card">
-        <h2>계정 설정</h2>
-        <label style="font-size:12px;color:var(--sub)">Threads User ID</label>
-        <input id="threadsUserId" placeholder="예: 123456789" style="margin-bottom:10px"
-          oninput="saveThreadsCreds()">
-        <label style="font-size:12px;color:var(--sub)">Access Token</label>
-        <input id="threadsToken" type="password" placeholder="THR..." style="margin-bottom:14px"
-          oninput="saveThreadsCreds()">
-        <button class="btn sm" onclick="testThreadsToken()">연결 테스트</button>
-        <div id="threadsTokenStatus" class="small muted" style="margin-top:6px"></div>
-      </div>
-      <div class="card">
-        <h2>글 발행</h2>
-        <label style="font-size:12px;color:var(--sub)">본문</label>
-        <textarea id="threadsPostText" rows="6" placeholder="발행할 내용 입력..." style="margin-bottom:10px"></textarea>
-        <label style="font-size:12px;color:var(--sub)">이미지 URL <span class="muted">(선택)</span></label>
-        <input id="threadsPostImage" placeholder="https://..." style="margin-bottom:14px">
-        <div class="row" style="gap:8px">
-          <button class="btn primary" style="flex:1" onclick="publishToThreads()">📤 지금 발행</button>
-          <button class="btn sm" onclick="addToThreadsQueue()">대기열 추가</button>
-        </div>
-        <div id="threadsPublishStatus" class="small" style="margin-top:8px"></div>
-      </div>
-    </div>
-    <div class="card" style="margin-top:14px">
-      <h2 style="margin-bottom:12px">최근 발행 내역</h2>
-      <div id="threadsPostHistory">
-        <div class="empty">발행 내역이 없습니다</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 발행 대기열 -->
-  <div id="threads-queue" class="sec-panel">
-    <div class="card">
-      <div class="row" style="justify-content:space-between;margin-bottom:14px">
-        <div>
-          <h2 style="margin:0 0 4px">발행 대기열</h2>
-          <div class="small muted">간격: 10~30분 랜덤 (스팸 감지 방지)</div>
-        </div>
-        <div class="row" style="gap:6px">
-          <span id="threadQueueCount" class="badge b-blue">0개</span>
-          <button class="btn sm" onclick="clearThreadQueue()" style="color:var(--red)">초기화</button>
-        </div>
-      </div>
-      <div id="threadQueueList">
-        <div class="empty">대기열이 비어있습니다</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 운영 가이드 -->
-  <div id="threads-guide" class="sec-panel">
-    <div class="grid2">
-      <div class="card" style="background:#f8f9fb;box-shadow:none">
-        <h2 style="font-size:14px">🛒 쿠팡 파트너스 전략</h2>
-        <div style="font-size:12px;line-height:2;color:var(--muted)">
-          <b style="color:var(--text)">링크 형식</b><br>
-          link.coupang.com/a/... 파트너스 링크<br><br>
-          <b style="color:var(--text)">게시글 구조</b><br>
-          본문: 훅 + 상품 소개 + 가격<br>
-          댓글: 구매 링크 + 광고 표시<br>
-          답글: 추가 정보 / 리뷰<br><br>
-          <b style="color:var(--text)">계정 5개 운영</b><br>
-          각 계정마다 다른 카테고리<br>
-          간격 10~30분 랜덤 발행<br><br>
-          <b style="color:var(--text)">광고 표시 의무</b><br>
-          [광고] 또는 #쿠팡파트너스 표시 필수
-        </div>
-      </div>
-      <div class="card" style="background:#f8f9fb;box-shadow:none">
-        <h2 style="font-size:14px">📊 콘텐츠 학습 전략</h2>
-        <div style="font-size:12px;line-height:2;color:var(--muted)">
-          <b style="color:var(--text)">잘 되는 게시글 패턴</b><br>
-          짧고 압축적 (14개)<br>
-          일상 (11개)<br>
-          진지 + 솔직 (각 10개)<br>
-          구어체 (10개)<br><br>
-          <b style="color:var(--text)">발행 시간대</b><br>
-          오전 7~9시 (출근길)<br>
-          점심 12~13시<br>
-          저녁 8~10시 (최고)<br><br>
-          <b style="color:var(--text)">트렌드 소재 찾기</b><br>
-          네이버 실시간 검색어<br>
-          구글 트렌드<br>
-          쿠팡 베스트셀러
         </div>
       </div>
     </div>
@@ -3042,7 +2833,7 @@ async function loadSecKpi(){
   document.getElementById('kpiApproval').textContent=approvals.length;
   document.getElementById('kpiDelayed').textContent=delayed.length;
   const totalK=projects.reduce((a,x)=>a+parseInt(String(x.token_usage||'0').replace(/[^0-9]/g,'')||0,10),0);
-  const secApiEl=document.getElementById('secApi');if(secApiEl)secApiEl.textContent='₩'+Math.round(totalK*0.00001*1380).toLocaleString();
+  const secApiEl=document.getElementById('secApi');if(secApiEl)secApiEl.textContent='₩'+Math.round(totalK*0.000005*1380).toLocaleString();
 }
 
 /* ============ 리스크 센터 ============ */
@@ -3242,102 +3033,13 @@ async function editRevenue(month){
  }catch(e){alert('매출 저장 실패: '+e.message)}
 }
 
-/* ============ Threads API 발행 ============ */
-/* ---- Threads 크레덴셜 저장/로드 (Supabase _system) ---- */
-async function saveThreadsCreds(){
-  const uid=document.getElementById('threadsUserId').value.trim();
-  const token=document.getElementById('threadsToken').value.trim();
-  try{
-    await sb('/sops?department=eq._system&title=eq.threads_creds',{method:'DELETE'});
-    await sb('/sops',{method:'POST',body:JSON.stringify([{title:'threads_creds',department:'_system',content:JSON.stringify({uid,token})}])});
-  }catch(e){}
-}
-async function loadThreadsCreds(){
-  try{
-    const rows=await sb('/sops?select=content&department=eq._system&title=eq.threads_creds');
-    if(rows&&rows[0]){
-      const d=JSON.parse(rows[0].content||'{}');
-      const uidEl=document.getElementById('threadsUserId');
-      const tokenEl=document.getElementById('threadsToken');
-      if(uidEl&&d.uid)uidEl.value=d.uid;
-      if(tokenEl&&d.token)tokenEl.value=d.token;
-    }
-  }catch(e){}
-}
 
-async function testThreadsToken(){
-  const uid=document.getElementById('threadsUserId').value.trim();
-  const token=document.getElementById('threadsToken').value.trim();
-  const statusEl=document.getElementById('threadsTokenStatus');
-  if(!uid||!token){statusEl.textContent='❌ User ID와 Token을 입력하세요';return;}
-  statusEl.textContent='⏳ 연결 확인 중...';
-  try{
-    const r=await fetch(`https://graph.threads.net/v1.0/${uid}?fields=id,username,threads_profile_picture_url&access_token=${token}`);
-    const d=await r.json();
-    if(d.username){statusEl.innerHTML=`✅ @${esc(d.username)} 연결됨`;}
-    else{statusEl.textContent='❌ 연결 실패: '+(d.error?.message||'알 수 없는 오류');}
-  }catch(e){statusEl.textContent='❌ 오류: '+e.message;}
-}
 
-async function publishToThreads(){
-  const uid=document.getElementById('threadsUserId').value.trim();
-  const token=document.getElementById('threadsToken').value.trim();
-  const text=document.getElementById('threadsPostText').value.trim();
-  const image=document.getElementById('threadsPostImage').value.trim();
-  const statusEl=document.getElementById('threadsPublishStatus');
-  if(!uid||!token){statusEl.textContent='❌ 계정 정보를 먼저 설정하세요';return;}
-  if(!text){statusEl.textContent='❌ 내용을 입력하세요';return;}
 
-  statusEl.textContent='⏳ 발행 중...';
-  try{
-    // 1단계: 미디어 컨테이너 생성
-    const createBody = new URLSearchParams({ text, media_type: image?'IMAGE':'TEXT', access_token: token });
-    if(image) createBody.append('image_url', image);
-    const createRes=await fetch(`https://graph.threads.net/v1.0/${uid}/threads`,{method:'POST',body:createBody});
-    const createData=await createRes.json();
-    if(!createData.id)throw new Error(createData.error?.message||'컨테이너 생성 실패');
 
-    // 2단계: 실제 발행
-    await new Promise(r=>setTimeout(r,1000));
-    const pubRes=await fetch(`https://graph.threads.net/v1.0/${uid}/threads_publish`,{
-      method:'POST',
-      body:new URLSearchParams({creation_id:createData.id,access_token:token})
-    });
-    const pubData=await pubRes.json();
-    if(!pubData.id)throw new Error(pubData.error?.message||'발행 실패');
-
-    statusEl.innerHTML=`✅ 발행 완료! <a href="https://www.threads.net/@${uid}" target="_blank" style="color:var(--blue)">확인 →</a>`;
-    document.getElementById('threadsPostText').value='';
-    document.getElementById('threadsPostImage').value='';
-
-    // 내역 저장
-    const history=JSON.parse(localStorage.getItem('rs_threads_history')||'[]');
-    history.unshift({id:pubData.id,text:text.slice(0,50),date:new Date().toLocaleString('ko-KR')});
-    localStorage.setItem('rs_threads_history',JSON.stringify(history.slice(0,20)));
-    renderThreadsHistory();
-  }catch(e){statusEl.textContent='❌ 실패: '+e.message;}
-}
-
-function addToThreadsQueue(){
-  const text=document.getElementById('threadsPostText').value.trim();
-  if(!text){alert('내용을 입력하세요');return;}
-  const q=JSON.parse(localStorage.getItem('rs_thread_queue')||'[]');
-  q.push({text,date:new Date().toLocaleString('ko-KR')});
-  localStorage.setItem('rs_thread_queue',JSON.stringify(q));
-  renderThreadQueue();
-  alert('대기열에 추가됐습니다');
-}
-
-function renderThreadsHistory(){
-  const box=document.getElementById('threadsPostHistory');
-  if(!box)return;
-  const history=JSON.parse(localStorage.getItem('rs_threads_history')||'[]');
-  box.innerHTML=history.length?history.map(h=>`<div style="padding:8px 0;border-bottom:1px solid var(--border)"><div class="small" style="font-weight:600">${esc(h.text)}${h.text.length>=50?'…':''}</div><div class="small muted">${esc(h.date)}</div></div>`).join(''):'<div class="empty">발행 내역이 없습니다</div>';
-}
 
 
 /* ============ 복구된 Tool 함수들 ============ */
-const THREAD_QUEUE_KEY='rs_thread_queue';
 /* ============ 포스터 메이커 ============ */
 let posterColorScheme='dark';
 const POSTER_COLORS={
@@ -3374,6 +3076,7 @@ async function generatePosterPrompt(){
   const colorDesc=POSTER_COLORS[posterColorScheme]||'dark';
   const baseTemplate=POSTER_TEMPLATES[use]||'';
   const statusEl=document.getElementById('posterPromptResult');
+  if(!window._oaiKey){statusEl.textContent='❌ API 키 로드 중입니다. 잠시 후 다시 시도해주세요.';await initConfig();if(!window._oaiKey)return;}
   statusEl.textContent='⏳ 프롬프트 생성 중...';
   try{
     const resp=await fetch('https://api.openai.com/v1/chat/completions',{
@@ -3397,127 +3100,6 @@ function copyPosterPrompt(){
 }
 function updatePosterPrompt(){}
 
-function threadsTab(btn,id){
-  document.querySelectorAll('#threads-tool .sec-tab').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('#threads-tool .sec-panel').forEach(p=>p.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(id).classList.add('active');
-  if(id==='threads-api'){loadThreadsCreds();renderThreadsHistory();}
-  if(id==='threads-queue'){renderThreadQueue();}
-}
-let currentThreadContent=null;
-async function generateCoupangThread(){
-  const url=document.getElementById('coupangUrl').value.trim();
-  const name=document.getElementById('coupangProductName').value.trim();
-  const price=document.getElementById('coupangPrice').value.trim();
-  const tone=document.getElementById('coupangTone').value;
-  const account=document.getElementById('coupangAccount').value;
-  if(!url&&!name)return alert('URL 또는 상품명을 입력하세요');
-  const statusEl=document.getElementById('coupangStatus');
-  statusEl.textContent='⏳ 스레드 생성 중...';
-  const toneMap={casual:'친근하고 솔직하게, 친구에게 추천하는 말투',urgent:'긴급/한정 강조, 빨리 사야 한다는 느낌',review:'실제 사용 후기 스타일, 구체적인 경험담',info:'상품 정보 중심, 핵심 스펙과 장점'};
-  try{
-    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
-      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
-      body:JSON.stringify({
-        model:'gpt-4o',max_tokens:1000,
-        messages:[{role:'system',content:`스레드 게시글 구조:
-[본문] 150자 이내, 훅+상품소개+가격
-[댓글] 구매 링크는 프로필에서 확인 가능 안내 + 광고 표시
-※ 댓글에 직접 링크 대신 "프로필 링크에서 확인하세요" 문구 사용
-[광고 표시] 반드시 "[광고] 이 포스팅은 쿠팡 파트너스 활동의 일환" 포함
-JSON으로만 반환: {"main":"본문","comment":"댓글","hashtags":["태그1",...]}`},{role:'user',content:`상품: ${name||'링크 참조'}\n가격: ${price||'미정'}\nURL: ${url}\n말투: ${toneMap[tone]}\n계정: ${account}번\n\n스레드 게시글 생성해줘`}],
-      })
-    });
-    const data=await resp.json();
-    const text=data.choices?.[0]?.message?.content||'{}';
-    const match=text.match(/\{[\s\S]*\}/);
-    const parsed=match?JSON.parse(match[0]):{main:text,comment:'',hashtags:[]};
-    currentThreadContent={...parsed,url,account,productName:name||'상품'};
-    document.getElementById('coupangResult').innerHTML=`
-      <div style="background:#f8f9fb;border-radius:10px;padding:14px;margin-bottom:10px">
-        <div class="small" style="color:var(--sub);margin-bottom:6px">📝 본문</div>
-        <div style="font-size:13px;white-space:pre-wrap">${esc(parsed.main||'')}</div>
-      </div>
-      <div style="background:#f8f9fb;border-radius:10px;padding:14px;margin-bottom:10px">
-        <div class="small" style="color:var(--sub);margin-bottom:6px">💬 댓글</div>
-        <div style="font-size:13px;white-space:pre-wrap">${esc(parsed.comment||'')}</div>
-      </div>
-      <div style="font-size:12px;color:var(--sub)">${(parsed.hashtags||[]).map(h=>`#${h}`).join(' ')}</div>`;
-    document.getElementById('addToQueueBtn').style.display='block';
-    statusEl.textContent='✅ 완료';
-  }catch(e){statusEl.textContent='❌ 실패: '+e.message;}
-}
-function addToThreadQueue(){
-  if(!currentThreadContent)return;
-  const list=JSON.parse(localStorage.getItem(THREAD_QUEUE_KEY)||'[]');
-  list.push({...currentThreadContent,id:Date.now(),createdAt:new Date().toLocaleString('ko-KR'),status:'대기'});
-  localStorage.setItem(THREAD_QUEUE_KEY,JSON.stringify(list));
-  renderThreadQueue();
-  alert('✅ 대기열에 추가됐습니다');
-  threadsTab(document.querySelector('#threads-tool .sec-tab:nth-child(3)'),'threads-queue');
-}
-async function generateThread(){
-  const topic=document.getElementById('threadTopic').value.trim();
-  if(!topic)return alert('주제를 입력하세요');
-  const tags=document.getElementById('threadTags').value.trim();
-  const type=document.getElementById('threadType').value;
-  const account=document.getElementById('threadAccount').value;
-  const typeMap={short:'짧은 3~5줄',thread:'본문+댓글 연결형',list:'리스트형 정보 나열',story:'스토리형 경험담'};
-  try{
-    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
-      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
-      body:JSON.stringify({
-        model:'gpt-4o',max_tokens:600,
-        messages:[{role:'system',content:`당신은 스레드 전문 작가입니다. ${tags?`학습 태그: ${tags}`:''}`},{role:'user',content:`주제: ${topic}\n유형: ${typeMap[type]}\n\n스레드 글 작성해줘`}],
-      })
-    });
-    const data=await resp.json();
-    const text=data.choices?.[0]?.message?.content||'{}';
-    const match=text.match(/\{[\s\S]*\}/);
-    const parsed=match?JSON.parse(match[0]):{main:text};
-    currentThreadContent={...parsed,account,type:'general'};
-    document.getElementById('threadWriteResult').innerHTML=`
-      <div style="background:#f8f9fb;border-radius:10px;padding:14px;margin-bottom:8px;white-space:pre-wrap;font-size:13px">${esc(parsed.main||'')}</div>
-      ${parsed.comment?`<div style="background:#f8f9fb;border-radius:10px;padding:14px;margin-bottom:8px;white-space:pre-wrap;font-size:12px;color:var(--sub)">${esc(parsed.comment)}</div>`:''}
-      <div style="font-size:12px;color:var(--sub)">${(parsed.hashtags||[]).map(h=>`#${h}`).join(' ')}</div>`;
-    document.getElementById('threadQueueBtn').style.display='block';
-  }catch(e){alert('실패: '+e.message);}
-}
-function addThreadToQueue(){addToThreadQueue();}
-function renderThreadQueue(){
-  const list=JSON.parse(localStorage.getItem(THREAD_QUEUE_KEY)||'[]');
-  const box=document.getElementById('threadQueueList');
-  const cnt=document.getElementById('threadQueueCount');
-  if(cnt)cnt.textContent=list.length+'개';
-  if(!list.length){box.innerHTML='<div class="empty">대기열이 비어있습니다</div>';return;}
-  box.innerHTML=list.map((item,i)=>`
-    <div class="row" style="padding:10px 0;border-bottom:1px solid var(--border);gap:8px;align-items:flex-start">
-      <span class="badge ${item.status==='완료'?'b-green':'b-yellow'}" style="white-space:nowrap;font-size:11px">${item.status}</span>
-      <div style="flex:1">
-        <b style="font-size:12px">계정${item.account} · ${esc(item.productName||item.type||'스레드')}</b>
-        <div class="small muted" style="margin-top:2px">${esc((item.main||'').slice(0,50))}...</div>
-        <div class="small muted">${esc(item.createdAt)}</div>
-      </div>
-      <button class="btn sm" onclick="copyThreadItem(${item.id})">복사</button>
-      <button class="btn sm" style="color:var(--red)" onclick="deleteThreadItem(${item.id})">삭제</button>
-    </div>`).join('');
-}
-function copyThreadItem(id){
-  const list=JSON.parse(localStorage.getItem(THREAD_QUEUE_KEY)||'[]');
-  const item=list.find(i=>i.id===id);
-  if(!item)return;
-  const text=`${item.main}\n\n${item.comment||''}`;
-  navigator.clipboard.writeText(text);
-  alert('✅ 복사됐습니다');
-}
-function deleteThreadItem(id){
-  let list=JSON.parse(localStorage.getItem(THREAD_QUEUE_KEY)||'[]');
-  list=list.filter(i=>i.id!==id);
-  localStorage.setItem(THREAD_QUEUE_KEY,JSON.stringify(list));
-  renderThreadQueue();
-}
-function clearThreadQueue(){if(!confirm('대기열을 전부 삭제할까요?'))return;localStorage.removeItem(THREAD_QUEUE_KEY);renderThreadQueue();}
 
 
 /* ============ 샤오홍슈 대본 ============ */
@@ -4543,7 +4125,7 @@ function apiTab(btn,id){
 async function loadApiManager(){
   const parseT=v=>parseInt(String(v||'0').replace(/[^0-9]/g,''))||0;
   const USD_KRW=1380;
-  const tokenToKrw=t=>Math.round(t*0.00001*USD_KRW);
+  const tokenToKrw=t=>Math.round(t*0.000005*USD_KRW); // GPT-4o 평균단가 $5/M
 
   // 1. 전체 누적 토큰 + 비용 (Supabase projects)
   let projects=[];
@@ -4598,23 +4180,17 @@ async function loadApiManager(){
   projRows(projects,'apiWeekProjectBody',3);
   projRows(projects,'apiMonthProjectBody',3);
 
-  // 직원별 토큰 + 완료 업무
+  // 직원별 토큰
   const empBody=document.getElementById('apiEmployeeBody');
   if(empBody){
     try{
-      const [emps,tasks]=await Promise.all([
-        sb('/employees?select=name,token_usage&limit=20'),
-        sb('/tasks?select=assigned_employee_name&status=eq.완료&limit=500')
-      ]);
-      const empCount={};
-      tasks.forEach(t=>{if(t.assigned_employee_name)empCount[t.assigned_employee_name]=(empCount[t.assigned_employee_name]||0)+1;});
+      const emps=await sb('/employees?select=name,token_usage&limit=20');
       const sorted=emps.sort((a,b)=>parseT(b.token_usage)-parseT(a.token_usage));
       empBody.innerHTML=sorted.length?sorted.map(e=>{
         const t=parseT(e.token_usage);
-        const cnt=empCount[e.name]||0;
-        return `<tr><td class="small" style="font-weight:600">${esc(e.name)}</td><td class="small">${t>0?t.toLocaleString()+' T':'-'}</td><td class="small">${cnt}건</td></tr>`;
-      }).join(''):'<tr><td colspan="3" class="empty">직원 데이터 없음</td></tr>';
-    }catch(e){empBody.innerHTML='<tr><td colspan="3" class="empty">집계 실패</td></tr>';}
+        return `<tr><td class="small" style="font-weight:600">${esc(e.name)}</td><td class="small">${t>0?t.toLocaleString()+' T':'-'}</td></tr>`;
+      }).join(''):'<tr><td colspan="2" class="empty">직원 데이터 없음</td></tr>';
+    }catch(e){empBody.innerHTML='<tr><td colspan="2" class="empty">집계 실패</td></tr>';}
   }
 }
 
@@ -4697,7 +4273,7 @@ async function sendBotChat(){
     // 토큰 비용
     const inp2=data.usage?.prompt_tokens||0;
     const out2=data.usage?.completion_tokens||0;
-    const cost=Math.round((inp2*0.000015+out2*0.000075)*1380);
+    const cost=Math.round((inp2*0.0000025+out2*0.00001)*1380);
     botTotalCost+=cost;
     document.getElementById('botChatCost').textContent=`비용: ₩${botTotalCost.toLocaleString()}`;
 

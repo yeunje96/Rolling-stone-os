@@ -244,7 +244,7 @@ export default async function handler(req, res) {
     const inputTokens = apiData.usage?.prompt_tokens || 0;
     const outputTokens = apiData.usage?.completion_tokens || 0;
     const totalTokens = inputTokens + outputTokens;
-    const costKrw = Math.round((inputTokens * 0.000015 + outputTokens * 0.000075) * 1380);
+    const costKrw = Math.round((inputTokens * 0.0000025 + outputTokens * 0.00001) * 1380);
 
     // API 비용 누적 저장 (settings 테이블 - value는 integer)
     try {
