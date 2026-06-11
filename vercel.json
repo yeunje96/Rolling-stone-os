@@ -3,11 +3,5 @@
     "api/*.js": {
       "maxDuration": 30
     }
-  },
-  "crons": [
-    {
-      "path": "/api/briefing",
-      "schedule": "0 23 * * *"
-    }
-  ]
+  }
 }
