@@ -1,0 +1,20 @@
+name: Daily Telegram Briefing
+
+on:
+  schedule:
+    - cron: '0 23 * * *'
+  workflow_dispatch:
+
+jobs:
+  send-briefing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call briefing API
+        run: |
+          response=$(curl -s -w "\n%{http_code}" "https://rollingstone-ai.vercel.app/api/briefing")
+          echo "$response"
+          status=$(echo "$response" | tail -1)
+          if [ "$status" != "200" ]; then
+            echo "브리핑 발송 실패: HTTP $status"
+            exit 1
+          fi
