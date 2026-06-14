@@ -148,21 +148,22 @@ ${outputs.map(o=>`• ${o.title}`).join('\n') || '없음'}
 }`;
 
   try {
-    const apiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'claude-fable-5',
         max_tokens: 1500,
         messages: [{ role: 'user', content: prompt }]
       })
     });
-    if (!apiRes.ok) throw new Error('OpenAI API 오류: ' + await apiRes.text());
+    if (!apiRes.ok) throw new Error('Claude API 오류: ' + await apiRes.text());
     const data = await apiRes.json();
-    const raw = data.choices?.[0]?.message?.content || '{}';
+    const raw = data.content?.[0]?.text || '{}';
     const match = raw.match(/\{[\s\S]*\}/);
     const parsed = match ? JSON.parse(match[0]) : { full_report: raw };
     return res.status(200).json({ ...parsed, period, generated_at: now2.toISOString() });

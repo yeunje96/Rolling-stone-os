@@ -110,6 +110,7 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
 .msg-layout{display:grid;grid-template-columns:200px 1fr;gap:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;height:min(620px,calc(100vh - 260px));min-height:360px}
 .msg-list{border-right:1px solid var(--border);overflow:auto;background:#fafbfc;min-height:0}
 .msg-contact{display:flex;align-items:center;gap:9px;padding:11px 12px;cursor:pointer;border-bottom:1px solid #eef0f2}
+.unread-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blue);margin-left:6px;vertical-align:middle}
 .msg-contact:hover{background:#f1f3f5}.msg-contact.on{background:var(--blueL)}
 .msg-contact .avatar{width:30px;height:30px;font-size:12px}
 .msg-contact b{font-size:13px;display:block}.msg-contact span{font-size:11px;color:var(--sub)}
@@ -299,7 +300,7 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
 </div>
 <div class="app">
 <aside class="sidebar">
-  <div class="brand"><div class="logo">RS</div><div><b>Rolling Stone OS</b><span style="font-size:10px;color:var(--sub);display:block;margin-top:1px;font-weight:400">v2.1 · 2026.06</span></div></div>
+  <div class="brand"><div class="logo">RS</div><div><b>Rolling Stone OS</b><span style="font-size:10px;color:var(--sub);display:block;margin-top:1px;font-weight:400">v2.2 · 2026.06.11</span></div></div>
   <div class="nav-section">OVERVIEW</div>
   <button class="nav active" data-view="dashboard">홈</button>
   <button class="nav" data-view="secretary">비서</button>
@@ -358,7 +359,6 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
     <button class="sec-tab active" data-sec="briefing" onclick="secTab(this,'briefing')">📋 오늘 브리핑</button>
     <button class="sec-tab" data-sec="daily"    onclick="secTab(this,'daily')">📊 일일 보고</button>
     <button class="sec-tab" data-sec="empReport" onclick="secTab(this,'empReport')">📄 보고서</button>
-    <button class="sec-tab" data-sec="gcalSetup" onclick="secTab(this,'gcalSetup')">📅 구글 캘린더</button>
   </div>
 
   <!-- 일정 센터 -->
@@ -465,29 +465,6 @@ label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12p
   </div>
 
   <!-- 구글 캘린더 탭 패널 -->
-  <div class="sec-panel" id="sec-gcalSetup">
-    <div class="card" style="max-width:480px;margin:0 auto">
-      <h2 style="margin-bottom:16px">📅 구글 캘린더 연동</h2>
-      <div id="gcalSecConnected" style="display:none">
-        <div class="card" style="background:var(--greenL);box-shadow:none;margin-bottom:12px">
-          <b style="color:var(--green)">✅ 구글 캘린더 연동됨</b>
-          <div class="small muted" style="margin-top:4px">모든 캘린더 일정이 자동으로 불러와집니다</div>
-        </div>
-        <button class="btn" style="color:var(--red);width:100%" onclick="disconnectGcal()">연동 해제</button>
-      </div>
-      <div id="gcalSecNotConnected">
-        <div class="card" style="background:var(--blueL);box-shadow:none;margin-bottom:12px">
-          <div style="font-size:12px;line-height:1.9">
-            구글 계정으로 로그인하면 <b>모든 캘린더</b>의<br>
-            일정을 자동으로 불러옵니다.
-          </div>
-        </div>
-        <a href="/api/gcal-auth" class="btn primary" style="display:block;text-align:center;text-decoration:none;padding:12px">
-          🗓 구글 계정으로 연동하기
-        </a>
-      </div>
-    </div>
-  </div>
 </section>
 
 <!-- ===================== 승인센터 ===================== -->
@@ -1644,6 +1621,19 @@ async function initConfig(){
   }
 }
 
+// Claude Fable 5 프록시 호출 헬퍼 (CORS 회피용 서버 경유)
+async function callAI(messages, opts={}){
+  const body={ messages, max_tokens: opts.max_tokens||1500 };
+  if(opts.system) body.system=opts.system;
+  const res=await fetch('/api/ai',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  if(!res.ok){const t=await res.text();throw new Error(t);}
+  return res.json(); // { text, tokens:{input,output,total} }
+}
+
 function uid(){return 'id-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8)}
 
 function parseSupabaseError(status, text){
@@ -2006,11 +1996,18 @@ let activeChatId=null;
 async function loadMessenger(){
  const list=document.getElementById('msgList');
  let msgs=[];try{msgs=await sb('/messages?select=*&order=created_at.asc')}catch(e){}
- const empCards=employees.map(e=>{const last=msgs.filter(m=>m.employee_id===e.id).slice(-1)[0];return `<div class="msg-contact ${activeChatId===e.id?'on':''}" onclick="openChat('${e.id}')">${avatarHTML(e)}<div style="overflow:hidden"><b>${esc(e.name)}</b><span>${last?esc((last.text||last.message||'').slice(0,16)):'대화 없음'}</span></div></div>`}).join('');
+ const unread=getUnreadSet();
+ const empCards=employees.map(e=>{
+   const last=msgs.filter(m=>m.employee_id===e.id).slice(-1)[0];
+   const dot=unread.has(e.id)&&activeChatId!==e.id?'<span class="unread-dot"></span>':'';
+   return `<div class="msg-contact ${activeChatId===e.id?'on':''}" onclick="openChat('${e.id}')">${avatarHTML(e)}<div style="overflow:hidden"><b>${esc(e.name)}${dot}</b><span>${last?esc((last.text||last.message||'').slice(0,16)):'대화 없음'}</span></div></div>`;
+ }).join('');
  list.innerHTML=empCards;
  if(activeChatId)await renderChat();
 }
-async function openChat(id){activeChatId=id;await loadMessenger();await renderChat();document.getElementById('msgInput').disabled=false;}
+function getUnreadSet(){try{return new Set(JSON.parse(localStorage.getItem('rs_unread')||'[]'));}catch(e){return new Set();}}
+function setUnread(empId,on){const s=getUnreadSet();if(on)s.add(empId);else s.delete(empId);localStorage.setItem('rs_unread',JSON.stringify([...s]));}
+async function openChat(id){activeChatId=id;setUnread(id,false);await loadMessenger();await renderChat();document.getElementById('msgInput').disabled=false;}
 async function renderChat(){
  let name,dept,avatar;
  const e=employees.find(x=>x.id===activeChatId);if(!e)return;name=e.name;dept=[e.department,e.position].filter(Boolean).join(' · ')||'';avatar=avatarHTML(e);
@@ -2029,7 +2026,7 @@ async function sendMessage(){
  const txt=inp.value.trim();
  if(!txt)return;
  inp.value='';
- inp.disabled=true; // 중복 전송 방지
+ inp.focus(); // 잠금 없이 연속 전송 허용
  const emp=employees.find(x=>x.id===activeChatId)||null;
  const empName=emp?emp.name:'직원';
  try{
@@ -2037,10 +2034,10 @@ async function sendMessage(){
   await sb('/messages',{method:'POST',body:JSON.stringify([msgPayload])});
   await renderChat();
   if(emp){
-    await callAgent(emp,txt);
+    // 답변은 비동기 — 대표는 기다리지 않고 추가 메시지 전송 가능
+    callAgent(emp,txt);
   }
  }catch(err){alert('전송 실패: '+err.message);}
- finally{inp.disabled=false;inp.focus();}
 }
 
 async function callAgent(emp,userText){
@@ -2065,6 +2062,9 @@ async function callAgent(emp,userText){
     await sb('/messages',{method:'POST',body:JSON.stringify([{
       employee_id:emp.id,employee_name:emp.name,sender:'직원',text:reply,message:reply
     }])});
+
+    // 현재 보고 있는 채팅이 아니면 안읽음 표시(파란 점)
+    if(activeChatId!==emp.id)setUnread(emp.id,true);
 
     // 액션 결과 알림 (SOP/프롬프트 제안만)
     const pendingActions=actions.filter(a=>['sop_propose','prompt_update'].includes(a.type));
@@ -2596,13 +2596,6 @@ function secTab(btn,id){
   document.getElementById('sec-'+id).classList.add('active');
   if(id==='daily'){loadSecKpi();loadSecRisk();}
   if(id==='empReport')loadTodayReports();
-  if(id==='gcalSetup'){
-    const connected=!!localStorage.getItem('gcal_connected');
-    const conn=document.getElementById('gcalSecConnected');
-    const notConn=document.getElementById('gcalSecNotConnected');
-    if(conn)conn.style.display=connected?'block':'none';
-    if(notConn)notConn.style.display=connected?'none':'block';
-  }
 }
 
 /* ============ 날씨 센터 ============ */
@@ -3076,20 +3069,13 @@ async function generatePosterPrompt(){
   const colorDesc=POSTER_COLORS[posterColorScheme]||'dark';
   const baseTemplate=POSTER_TEMPLATES[use]||'';
   const statusEl=document.getElementById('posterPromptResult');
-  if(!window._oaiKey){statusEl.textContent='❌ API 키 로드 중입니다. 잠시 후 다시 시도해주세요.';await initConfig();if(!window._oaiKey)return;}
   statusEl.textContent='⏳ 프롬프트 생성 중...';
   try{
-    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
-      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
-      body:JSON.stringify({
-        model:'gpt-4o',max_tokens:1500,
-        messages:[{role:'system',content:`아래 정보를 바탕으로 Canva에서 사용할 영문 포스터 생성 프롬프트를 작성하세요.
-FORMAT, TYPOGRAPHY, MAIN VISUAL, COLOR, STYLE, FX 섹션을 포함하세요.
-프롬프트만 출력하고 설명은 하지 마세요.`},{role:'user',content:`용도: ${use}\n비율: ${ratio}\n제목/텍스트: ${title}\n분위기: ${mood}\n컬러: ${colorDesc}\n베이스 템플릿: ${baseTemplate}\n\n위 내용으로 Canva 포스터 생성 프롬프트를 작성해줘.`}],
-      })
-    });
-    const data=await resp.json();
-    statusEl.textContent=data.choices?.[0]?.message?.content||'생성 실패';
+    const data=await callAI(
+      [{role:'user',content:`용도: ${use}\n비율: ${ratio}\n제목/텍스트: ${title}\n분위기: ${mood}\n컬러: ${colorDesc}\n베이스 템플릿: ${baseTemplate}\n\n위 내용으로 Canva 포스터 생성 프롬프트를 작성해줘.`}],
+      {system:`아래 정보를 바탕으로 Canva에서 사용할 영문 포스터 생성 프롬프트를 작성하세요.\nFORMAT, TYPOGRAPHY, MAIN VISUAL, COLOR, STYLE, FX 섹션을 포함하세요.\n프롬프트만 출력하고 설명은 하지 마세요.`, max_tokens:1500}
+    );
+    statusEl.textContent=data.text||'생성 실패';
   }catch(e){statusEl.textContent='❌ 실패: '+e.message;}
 }
 function copyPosterPrompt(){
@@ -3124,17 +3110,11 @@ async function generateXhsScript(){
   const catMap={fashion:'패션/스타일',beauty:'뷰티/스킨케어',food:'음식/맛집',travel:'여행/라이프스타일',fitness:'운동/건강',daily:'일상/감성',study:'공부/자기계발'};
   const moodMap={cute:'귀엽고 발랄한 (可爱风)',aesthetic:'감성적이고 시적인 (文艺风)',informative:'정보 전달형 (干货)',funny:'유머러스한 (搞笑)',luxury:'럭셔리/고급스러운 (精致风)'};
   try{
-    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
-      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
-      body:JSON.stringify({
-        model:'gpt-4o',max_tokens:1500,
-        messages:[{role:'system',content:`한국어 본문 3개 + 각각의 중국어 번역을 생성하세요.
-JSON으로만 반환:
-{"scripts":[{"korean":"한국어본문","chinese":"中文翻译","hashtags_kr":["태그"],"hashtags_cn":["标签"]},...]}`},{role:'user',content:`콘텐츠: ${desc}\n카테고리: ${catMap[cat]}\n분위기: ${moodMap[mood]}\n\n샤오홍슈 본문 3개 (한국어+중국어) 생성해줘`}],
-      })
-    });
-    const data=await resp.json();
-    const text=data.choices?.[0]?.message?.content||'{}';
+    const data=await callAI(
+      [{role:'user',content:`콘텐츠: ${desc}\n카테고리: ${catMap[cat]}\n분위기: ${moodMap[mood]}\n\n샤오홍슈 본문 3개 (한국어+중국어) 생성해줘`}],
+      {system:`한국어 본문 3개 + 각각의 중국어 번역을 생성하세요.\nJSON으로만 반환:\n{"scripts":[{"korean":"한국어본문","chinese":"中文翻译","hashtags_kr":["태그"],"hashtags_cn":["标签"]},...]}`, max_tokens:1500}
+    );
+    const text=data.text||'{}';
     const match=text.match(/\{[\s\S]*\}/);
     const parsed=match?JSON.parse(match[0]):{scripts:[]};
     const scripts=parsed.scripts||[];
@@ -3390,13 +3370,16 @@ async function generateSunoPrompts(){
   const bpmStr=bpm||'';
 
   try{
-    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(window._oaiKey||'')},
-      body:JSON.stringify({
-        model:'gpt-4o',
-        max_tokens:1500,
-        system:`당신은 Suno AI 음악 생성 전문가입니다.
+    const data=await callAI(
+      [{role:'user',content:`다음 조건으로 Suno 프롬프트 5개 만들어줘:
+분위기: ${mood||'자유'}
+장르/스타일: ${genreStr}
+보컬: ${vocal}
+템포: ${bpmStr||'자유'}
+사용 목적: ${purpose}
+
+5개 모두 같은 목적이지만 조금씩 다른 느낌으로 만들어줘.`}],
+      {system:`당신은 Suno AI 음악 생성 전문가입니다.
 Suno의 Style of Music 프롬프트를 작성합니다.
 
 [Suno 프롬프트 규칙]
@@ -3410,20 +3393,10 @@ JSON만 반환:
 {"prompts":[
   {"title":"한국어 제목","prompt":"영어 프롬프트","description":"한 줄 설명"},
   ...
-]}`,
-        messages:[{role:'user',content:`다음 조건으로 Suno 프롬프트 5개 만들어줘:
-분위기: ${mood||'자유'}
-장르/스타일: ${genreStr}
-보컬: ${vocal}
-템포: ${bpmStr||'자유'}
-사용 목적: ${purpose}
+]}`, max_tokens:1500}
+    );
 
-5개 모두 같은 목적이지만 조금씩 다른 느낌으로 만들어줘.`}]
-      })
-    });
-
-    const data=await resp.json();
-    const raw=data.choices?.[0]?.message?.content||'{}';
+    const raw=data.text||'{}';
     const match=raw.match(/\{[\s\S]*\}/);
     const parsed=match?JSON.parse(match[0]):{prompts:[]};
     sunoPrompts=parsed.prompts||[];
@@ -3552,23 +3525,17 @@ async function generateCardNews(){
   userPrompt+=`\n\n위 내용으로 한국어 ${count}장 카드뉴스를 JSON 배열로만 반환해줘. 설명 없이 JSON만.`;
 
   try{
-    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(window._oaiKey||'')},
-      body:JSON.stringify({
-        model:'gpt-4o',
-        max_tokens:4000,
-        messages:[{role:'system',content:CN_SYSTEM_PROMPT},{role:'user',content:userPrompt}]
-      })
-    });
-
-    if(!resp.ok){
-      const err=await resp.text();
-      throw new Error('API 오류: '+err.slice(0,200));
+    let data;
+    try{
+      data=await callAI(
+        [{role:'user',content:userPrompt}],
+        {system:CN_SYSTEM_PROMPT, max_tokens:4000}
+      );
+    }catch(err){
+      throw new Error('API 오류: '+String(err).slice(0,200));
     }
 
-    const data=await resp.json();
-    const raw=data.choices?.[0]?.message?.content||'[]';
+    const raw=data.text||'[]';
 
     // JSON 파싱
     let slides=[];
@@ -4257,22 +4224,17 @@ async function sendBotChat(){
 
     const systemPrompt=`${emp.prompt||'당신은 Rolling Stone Design 직원입니다.'}\n\n[공통 지침]\n대표님께 깍듯이. 결론 먼저. 두괄식. 거짓말 금지. 맞춤법 철저. 10년 베테랑.\n\n${ctx}`;
 
-    const res=await fetch('https://api.openai.com/v1/chat/completions',{
-      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+window._oaiKey},
-      body:JSON.stringify({
-        model:'gpt-4o',max_tokens:800,
-        messages:[{role:'system',content:systemPrompt},...botChatHistory.slice(-16)]
-      })
-    });
-    if(!res.ok)throw new Error(await res.text());
-    const data=await res.json();
-    const reply=data.choices?.[0]?.message?.content||'처리 중 오류가 발생했습니다.';
+    const data=await callAI(
+      botChatHistory.slice(-16),
+      {system:systemPrompt, max_tokens:800}
+    );
+    const reply=data.text||'처리 중 오류가 발생했습니다.';
 
     botChatHistory.push({role:'assistant',content:reply});
 
-    // 토큰 비용
-    const inp2=data.usage?.prompt_tokens||0;
-    const out2=data.usage?.completion_tokens||0;
+    // 토큰 비용 (Claude usage)
+    const inp2=data.tokens?.input||0;
+    const out2=data.tokens?.output||0;
     const cost=Math.round((inp2*0.0000025+out2*0.00001)*1380);
     botTotalCost+=cost;
     document.getElementById('botChatCost').textContent=`비용: ₩${botTotalCost.toLocaleString()}`;

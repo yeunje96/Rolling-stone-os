@@ -82,22 +82,23 @@ ${approvals.length ? approvals.slice(0,3).map(a=>`• ${a.title}`).join('\n') : 
 
 JSON만 반환: {"message": "텔레그램 메시지 내용"}`;
 
-    const apiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'claude-fable-5',
         max_tokens: 600,
         messages: [{ role: 'user', content: prompt }]
       })
     });
 
-    if (!apiRes.ok) throw new Error('OpenAI API 오류: ' + await apiRes.text());
+    if (!apiRes.ok) throw new Error('Claude API 오류: ' + await apiRes.text());
     const apiData = await apiRes.json();
-    const raw = apiData.choices?.[0]?.message?.content || '{}';
+    const raw = apiData.content?.[0]?.text || '{}';
 
     let message = '';
     try {

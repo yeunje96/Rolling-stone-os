@@ -23,16 +23,39 @@ async function collectData(baseUrl) {
     const todayStr = new Date().toISOString().slice(0,10);
     if (d.events) schedules = d.events.filter(e => e.date === todayStr);
   } catch(e) {}
-  // 뉴스
+  // 뉴스 (10개)
   let news = [];
   try {
     const r = await fetch(baseUrl + '/api/news?source=mk');
     const d = await r.json();
-    news = (d.items || []).slice(0,3);
+    news = (d.items || []).slice(0,10);
+  } catch(e) {}
+  // 날씨 (Open-Meteo, 전주/서울)
+  const WMO = {0:'맑음',1:'대체로 맑음',2:'구름 조금',3:'흐림',45:'안개',48:'안개',51:'이슬비',53:'이슬비',55:'이슬비',61:'비',63:'비',65:'강한 비',71:'눈',80:'소나기',95:'뇌우'};
+  const weather = {};
+  try {
+    const regions = [
+      { key:'jeonju', lat:35.8242, lon:127.1480 },
+      { key:'seoul',  lat:37.5665, lon:126.9780 }
+    ];
+    await Promise.all(regions.map(async rg => {
+      try {
+        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${rg.lat}&longitude=${rg.lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=Asia%2FSeoul`);
+        const d = await r.json();
+        const c = d.current || {};
+        weather[rg.key] = {
+          temp: Math.round(c.temperature_2m ?? 0),
+          desc: WMO[c.weather_code] || '—',
+          humidity: c.relative_humidity_2m ?? '—',
+          wind: (c.wind_speed_10m != null ? c.wind_speed_10m + 'km/h' : '—'),
+          pm: '—'
+        };
+      } catch(e) {}
+    }));
   } catch(e) {}
   const delayed = tasks.filter(t => (Date.now() - new Date(t.created_at)) > 7*86400000);
   const newTasks = tasks.filter(t => t.status === '대기');
-  return { schedules, tasks, approvals: approvalRows.length, weather: {}, news, projects, delayed, newTasks };
+  return { schedules, tasks, approvals: approvalRows.length, weather, news, projects, delayed, newTasks };
 }
 
 async function sendTelegram(message) {
@@ -138,23 +161,24 @@ ${approvals > 0 ? `${approvals}건 처리 필요` : '없음'}
 JSON만 반환: {"telegram_message":"...","os_summary":"(3문장 핵심 요약)"}`;
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'claude-fable-5',
         max_tokens: 2000,
         messages: [{ role: 'user', content: prompt }]
       })
     });
 
-    if (!response.ok) throw new Error('OpenAI API 오류: ' + await response.text());
+    if (!response.ok) throw new Error('Claude API 오류: ' + await response.text());
 
     const data = await response.json();
-    const raw = data.choices?.[0]?.message?.content || '{}';
+    const raw = data.content?.[0]?.text || '{}';
     let parsed = {};
     try {
       const match = raw.match(/\{[\s\S]*\}/);

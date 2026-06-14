@@ -126,30 +126,29 @@ export default async function handler(req, res) {
       { role: 'user', content: message }
     ];
 
-    // OpenAI GPT-4o 호출
-    const apiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Claude Fable 5 호출
+    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'claude-fable-5',
         max_tokens: 800,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...messages
-        ]
+        system: systemPrompt,
+        messages: messages
       })
     });
 
     if (!apiRes.ok) {
       const errText = await apiRes.text();
-      throw new Error('OpenAI API 오류: ' + errText);
+      throw new Error('Claude API 오류: ' + errText);
     }
 
     const apiData = await apiRes.json();
-    const rawText = apiData.choices?.[0]?.message?.content?.trim() || '{}';
+    const rawText = apiData.content?.[0]?.text?.trim() || '{}';
 
     // JSON 파싱
     let parsed = { reply: rawText, actions: [] };
@@ -240,9 +239,9 @@ export default async function handler(req, res) {
       } catch(e) {}
     }
 
-    // 토큰 비용
-    const inputTokens = apiData.usage?.prompt_tokens || 0;
-    const outputTokens = apiData.usage?.completion_tokens || 0;
+    // 토큰 비용 (Claude usage)
+    const inputTokens = apiData.usage?.input_tokens || 0;
+    const outputTokens = apiData.usage?.output_tokens || 0;
     const totalTokens = inputTokens + outputTokens;
     const costKrw = Math.round((inputTokens * 0.0000025 + outputTokens * 0.00001) * 1380);
 

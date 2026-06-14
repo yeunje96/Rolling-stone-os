@@ -58,18 +58,19 @@ export default async function handler(req, res) {
       if (items.length >= 10) break;
     }
 
-    // NYT 영문 → GPT-4o 번역
-    if (source === 'nyt' && items.length && process.env.OPENAI_API_KEY) {
+    // NYT 영문 → Claude Fable 5 번역
+    if (source === 'nyt' && items.length && process.env.ANTHROPIC_API_KEY) {
       try {
         const titles = items.map((it, i) => `${i+1}. ${it.headline}`).join('\n');
-        const apiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+        const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+            'x-api-key': process.env.ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01'
           },
           body: JSON.stringify({
-            model: 'gpt-4o',
+            model: 'claude-fable-5',
             max_tokens: 1500,
             messages: [{
               role: 'user',
@@ -80,7 +81,7 @@ export default async function handler(req, res) {
 
         if (apiRes.ok) {
           const data = await apiRes.json();
-          const translated = (data.choices?.[0]?.message?.content || '').split('\n').filter(Boolean);
+          const translated = (data.content?.[0]?.text || '').split('\n').filter(Boolean);
           translated.forEach(line => {
             const m = line.match(/^(\d+)[.)]\s*(.+)$/);
             if (m) {
