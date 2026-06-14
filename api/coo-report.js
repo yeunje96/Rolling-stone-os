@@ -90,7 +90,7 @@ JSON만 반환: {"message": "텔레그램 메시지 내용"}`;
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-fable-5',
+        model: 'claude-opus-4-8',
         max_tokens: 600,
         messages: [{ role: 'user', content: prompt }]
       })

@@ -156,7 +156,7 @@ ${outputs.map(o=>`• ${o.title}`).join('\n') || '없음'}
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-fable-5',
+        model: 'claude-opus-4-8',
         max_tokens: 1500,
         messages: [{ role: 'user', content: prompt }]
       })

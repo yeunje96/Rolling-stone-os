@@ -14,7 +14,7 @@ export default async function handler(req, res) {
 
   try {
     const body = {
-      model: 'claude-fable-5',
+      model: 'claude-opus-4-8',
       max_tokens,
       messages
     };
